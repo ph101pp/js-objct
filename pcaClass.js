@@ -48,10 +48,13 @@
 
 		// The dummy class constructor
 		function Class() {
-			// All construction is actually done in the init method
+			// All construction is actually done in the construct method
 			if( initializing ) return
-			if( this._abstract ) throw("Abstract class may not be constructed"); //pca
-			else if( this.construct ) this.construct.apply(this, arguments);
+			if( this._abstract ) throw("Abstract class may not be constructed");
+			else if( this.construct ) {
+				var construct = this.construct.apply(this, arguments);
+				if(["object", "function"].indexOf(typeof(construct)) >= 0) return construct;
+			}
 		}
 
 		// Populate our constructed prototype object
