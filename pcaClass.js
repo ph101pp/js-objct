@@ -51,7 +51,7 @@
 			// All construction is actually done in the init method
 			if( initializing ) return
 			if( this._abstract ) throw("Abstract class may not be constructed"); //pca
-			else if( this._init ) this._init.apply(this, arguments);
+			else if( this.construct ) this.construct.apply(this, arguments);
 		}
 
 		// Populate our constructed prototype object
@@ -68,26 +68,22 @@
 
 	var extend = function(newClass){
 		this.prototype._abstract=false;
-		var extendingClass = newClass.prototype;
-		extendingClass._init = newClass;
-		extendingClass._init.prototype={};
-		return this._extend(extendingClass);		
+		return this._extend(newClass);		
 	}
-
+	var abstract = function(newClass){
+		newClass.prototype._abstract= true;
+		return this.extend(newClass);
+	}
 	var pcaClass = function(newClass){
-		var extendingClass = newClass.prototype;
-		extendingClass._init = newClass;
-		extendingClass._init.prototype={};
-		newClass = Class._extend(extendingClass);
+		newClass = Class._extend(newClass);
 		newClass.extend = extend.bind(newClass);
+		newClass.extend.abstract = abstract.bind(newClass);
 		return newClass;
 	}
-
 	pcaClass.abstract = function(newClass) {
 		newClass.prototype._abstract= true;
 		return pcaClass(newClass);
 	}
-
 	pcaClass.extend = function(abstractClass, extendingClass) {
 		return typeof(abstractClass.extend) === "function" ?
 			abstractClass.extend(extendingClass):
