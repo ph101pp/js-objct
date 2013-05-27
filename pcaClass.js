@@ -10,47 +10,48 @@
 	 */
 	var initializing = false, fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
 
+
 	// The base Class implementation (does nothing)
 	this.Class = function(){};
-
 	// Create a new Class that inherits from this class
-	Class._extend = function(prop) {
-		var _super = this.prototype;
+	Class._extend = function(extendingClass) {
+		var prototype = this.prototype;
 
 		// Instantiate a base class (but only create the instance,
 		// don't run the init constructor)
 		initializing = true;
-		var prototype = new this();
+//		var _super = new this();
+		var closure = new extendingClass();
 		initializing = false;
 
 		// Copy the properties over onto the new prototype
-		for (var name in prop) {
+		for (var name in closure) {
 			// Check if we're overwriting an existing function
-			prototype[name] = typeof prop[name] == "function" && typeof _super[name] == "function" && fnTest.test(prop[name]) ?
-				(function(name, fn){
+			prototype[name] = typeof closure[name] == "function" && ((typeof prototype[name] == "function" && fnTest.test(closure[name])) || typeof extendingClass.prototype[name] != "function") ?
+				(function(name, closure, _super){
 					return function() {
-						var tmp = this._super;
+						var tmp = closure._super;
 
 						// Add a new ._super() method that is the same method
 						// but on the super-class
-						this._super = _super[name];
+						//if(_super) closure._super = _super;
 
 						// The method only need to be bound temporarily, so we
 						// remove it when we're done executing
-						var ret = fn.apply(this, arguments);        
-						this._super = tmp;
+						var ret = closure[name].apply(closure, arguments);        
+						closure._super = tmp;
 
 						return ret;
 					};
-				})(name, prop[name]) :
-				prop[name];
+				})(name, closure, prototype[name]) :
+				closure[name];
 		}
 
 		// The dummy class constructor
 		function Class() {
 			// All construction is actually done in the construct method
 			if( initializing ) return
-			if( this._abstract ) throw("Abstract class may not be constructed");
+		//	if( this._abstract ) throw("Abstract class may not be constructed");
 			else if( this.construct ) {
 				var construct = this.construct.apply(this, arguments);
 				if(["object", "function"].indexOf(typeof(construct)) >= 0) return construct;
@@ -65,11 +66,15 @@
 
 		// And make this class extendable
 		Class._extend = arguments.callee;
-
+		Class.extend = extend.bind(Class);
+		Class.extend.abstract = abstract.bind(Class);
+ 
+		console.log("pcaClass.prototype",Class.prototype);
+		console.log("pcaClass instance",new Class());
 		return Class;
 	};
-
 	var extend = function(newClass){
+		console.log("extend");
 		this.prototype._abstract=false;
 		return this._extend(newClass);		
 	}
@@ -79,8 +84,6 @@
 	}
 	var pcaClass = function(newClass){
 		newClass = Class._extend(newClass);
-		newClass.extend = extend.bind(newClass);
-		newClass.extend.abstract = abstract.bind(newClass);
 		return newClass;
 	}
 	pcaClass.abstract = function(newClass) {
