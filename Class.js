@@ -1,22 +1,29 @@
 (function(undefined){
-	var Class = function(child, abstract){
-		if(!(this instanceof Class)) return new Class(child);
-		var extending = [child];
-		var building = false;
-		var fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
+	var building = false;
+	var fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
+	var Class = function(child){
+		var extending = [];
+		var extend = function(child) {
+			for(name in child) {
+				if(["_build", "extend"].indexOf(name) < 0) 
+					Executable[name]=child[name];
+				else if(''+child !== ''+Executable) 
+					throw("Method names '_build' and 'extend' are reserved on Class Objects (sorry)");
+			}
+			extending.push(child);
+			return Executable;
+		}
 		var Executable = function(){
-			// throw("Classes need to be initiated with the new operator");
-			var Class = Executable.build(function(){
-				// All construction is actually done in the construct method
-				//if( this._abstract ) throw("Abstract class may not be constructed");
-				if(building) return;
-				//console.log(this);
-				if(this.construct) 
-					return this.construct.apply(this, arguments);
-			});
-			// Enforce the constructor to be what we expect
-			Class.prototype.constructor = Class;
+			if(!(this instanceof Executable)) throw("Classes need to be initiated with the new operator");
 
+			var Class = Executable._build(function Class(){
+				// All construction is actually done in the construct method
+				if(building) return;
+				if(this._abstract) throw("Abstract class may not be constructed");
+				if(this.construct) return this.construct.apply(this, arguments);
+			});
+
+			// Add substitution for native instanceof operator
 			Class.prototype.instanceof = function(child){
 				if(Executable === child) return true;
 				for(var i=extending.length-1; i>=0; i--) {
@@ -26,27 +33,22 @@
 				return false;
 			}
 			
-			//console.log("Class",Class)
-			if(this instanceof Executable) {
-				// Initialize newly build Class with proper attributes
-				Array.prototype.unshift.call(arguments, null);
-				return new (Function.prototype.bind.apply(Class, arguments)); 	
-			}
-			return Class;
+			// Initialize newly build Class with proper attributes
+			Array.prototype.unshift.call(arguments, null);
+			return new (Function.prototype.bind.apply(Class, arguments)); 	
 		}
-		Executable.build = function(Class){
-			for(var i=extending.length-1; i>=0; i--) {
-				if(extending[i].build) Class=extending[i].build(Class);
+		Executable._build = function(Class){
+			for(var i=0; i<extending.length; i++) {
+				if(''+extending[i] === ''+Executable) Class=extending[i]._build(Class);
 				else {
-					// building = true;
-					// Class = new Class();
-					// Class.prototype = {}
-					// building = false;
+					building = true;
+					Class.prototype = new Class();
+					building = false;
+
 					var properties = new extending[i]();
 					for (var name in properties) {
-						// Check if we have to wrap the function
+						// Check if we have to wrap the function either because it has a _super function or because it needs its own private closure.
 						var check=typeof properties[name] === "function" && (typeof extending[i].prototype[name] !== "function" || (typeof Class.prototype[name] === "function" && fnTest.test(properties[name])));
-			//			console.log(name, check, properties)
 						Class.prototype[name] = check ?
 							(function(fn, _super ,name) {
 								return function() {
@@ -58,7 +60,7 @@
 									// but on the super-class
 									this._super = _super;
 									
-									// The method only need to be bound temporarily, so we
+									// The method only needs to be bound temporarily, so we
 									// remove it when we're done executing
 									var ret = fn.apply(this, arguments); 
 									this._super = tmp;
@@ -69,18 +71,27 @@
 					}
 				}
 			}
+			// Enforce the constructor to be what we expect
+			Class.prototype.constructor = Class;
 			return Class;
 		}
 		Executable.extend = function(child){
-//			child.prototype._abstract = false;
-			extending.push(child);
-			return this;
-		}
-		return Executable;
+			child.prototype._abstract = false;
+			return extend(child);
+		}		
+		Executable.extend.abstract = function(child){
+			child.prototype._abstract = true;
+			return extend(child);
+		}	
+		return extend(child);
 	}
-	Class.abstract = function(child){
-//		child.prototype._abstract = true;
+	var Constructor = function(child){
+		child.prototype._abstract = false;
 		return new Class(child);
 	}
-	module.exports = Class;
+	Constructor.abstract = function(child){
+		child.prototype._abstract = true;
+		return new Class(child);
+	}
+	module.exports = Constructor;
 })();
