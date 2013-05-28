@@ -1,0 +1,79 @@
+(function(undefined){
+	var Class = function(child, abstract){
+		if(!(this instanceof Class)) return new Class(child);
+		var extending = [child];
+		var fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
+		var Executable = function(){
+			// throw("Classes need to be initiated with the new operator");
+			var Class = Executable.build(function(){
+				// All construction is actually done in the construct method
+				//if( this._abstract ) throw("Abstract class may not be constructed");
+
+				//console.log(this);
+				if(this.construct) 
+					return this.construct.apply(this, arguments);
+			});
+			// Enforce the constructor to be what we expect
+			Class.prototype.constructor = Class;
+
+			Class.prototype.instanceof = function(child){
+				for(var i=extending.length-1; i>=0; i--) {
+					if(extending[i] == child) return true;
+					if(extending[i].isInstance && extending[i].isInstance(child)) return true;
+				}
+				return false;
+			}
+			
+			//console.log("Class",Class)
+			if(this instanceof Executable) {
+				// Initialize newly build Class with proper attributes
+				Array.prototype.unshift.call(arguments, null);
+				return new (Function.prototype.bind.apply(Class, arguments)); 	
+			}
+			return Class;
+		}
+		Executable.build = function(Class){
+			for(var i=extending.length-1; i>=0; i--) {
+				if(extending[i].build) Class=extending[i].build(Class);
+				else {
+					var properties = new extending[i]();
+					for (var name in properties) {
+						// Check if we're overwriting an existing function
+						Class.prototype[name] = typeof properties[name] == "function" ?
+							(function(fn, _super) {
+								return function() {
+									if(!fnTest.test(fn)) _super = undefined;
+									if(_super) {
+										var tmp = this._super;
+
+										// Add a new ._super() method that is the same method
+										// but on the super-class
+										this._super = _super;
+									}
+
+									// The method only need to be bound temporarily, so we
+									// remove it when we're done executing
+									var ret = fn.apply(this, arguments); 
+									if(_super) this._super = tmp;
+									return ret;
+								}
+							})(properties[name], Class.prototype[name]) :
+							properties[name];
+					}
+				}
+			}
+			return Class;
+		}
+		Executable.extend = function(child){
+//			child.prototype._abstract = false;
+			extending.push(child);
+			return this;
+		}
+		return Executable;
+	}
+	Class.abstract = function(child){
+//		child.prototype._abstract = true;
+		return new Class(child);
+	}
+	module.exports = Class;
+})();
