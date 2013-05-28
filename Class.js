@@ -38,26 +38,26 @@
 				else {
 					var properties = new extending[i]();
 					for (var name in properties) {
+						
 						// Check if we're overwriting an existing function
 						Class.prototype[name] = typeof properties[name] == "function" ?
-							(function(fn, _super) {
+							(function(fn, _super,name) {
 								return function() {
-									if(!fnTest.test(fn)) _super = undefined;
-									if(_super) {
-										var tmp = this._super;
+									if(!fnTest.test(fn) || !_super) _super = undefined;
+									
+									var tmp = this._super;
 
-										// Add a new ._super() method that is the same method
-										// but on the super-class
-										this._super = _super;
-									}
-
+									// Add a new ._super() method that is the same method
+									// but on the super-class
+									this._super = _super;
+									
 									// The method only need to be bound temporarily, so we
 									// remove it when we're done executing
 									var ret = fn.apply(this, arguments); 
-									if(_super) this._super = tmp;
+									this._super = tmp;
 									return ret;
 								}
-							})(properties[name], Class.prototype[name]) :
+							})(properties[name], Class.prototype[name], name) :
 							properties[name];
 					}
 				}
