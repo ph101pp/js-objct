@@ -1,6 +1,15 @@
 (function(undefined){
 	var building = false;
 	var fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
+	var attachSuper = function(fn, _super) {
+		return function() {
+			var tmp = this._super;
+			this._super = _super;
+			var ret = fn.apply(this, arguments); 
+			this._super = tmp;
+			return ret;
+		}
+	}
 	var Inheritance = function(child, _super, _abstract){
 		var extending = [];
 		var abstract = _abstract || false;
@@ -12,8 +21,10 @@
 			for(var i=0; i<classes.length; i++)
 				if(classes[i]) {
 					for(name in classes[i]) {
-						if(["_build", "extend", "_abstract"].indexOf(name) < 0) 
-							Executable[name]=classes[i][name];
+						if(["_build", "extend", "_abstract", "_instanceof"].indexOf(name) < 0) 
+							Executable[name]= typeof Executable[name] === "function" ?
+								attachSuper(classes[i][name], Executable[name]):
+								classes[i][name];
 						else if(''+classes[i] !== ''+Executable) 
 							throw("Property names '_build', 'extend', '_instanceof' and '_abstract' are reserved on Class objects. (Sorry)");
 					}
@@ -39,7 +50,6 @@
 			Array.prototype.unshift.call(arguments, null);
 			return new (Function.prototype.bind.apply(Class, arguments)); 	
 		}
-
 		Executable._build = function(Class){
 			// Define _instanceof function for every Executable that gets build.
 			Executable._instanceof = function(child){
@@ -57,26 +67,15 @@
 					Class.prototype = new Class();
 					building = false;
 
-					var properties = new extending[i]();
+					var properties = typeof extending[i] === "function" ?
+						new extending[i]():
+						extending[i];
+
 					for (var name in properties) {
 						// Check if we have to wrap the function either because it has a _super function or because it needs its own private closure.
-						var check=typeof properties[name] === "function" && (typeof extending[i].prototype[name] !== "function" || (typeof Class.prototype[name] === "function" && fnTest.test(properties[name])));
+						var check=typeof properties[name] === "function" && ((extending[i].prototype && typeof extending[i].prototype[name] !== "function") || (typeof Class.prototype[name] === "function" && fnTest.test(properties[name])));
 						Class.prototype[name] = check ?
-							(function(fn, _super) {
-								return function() {
-									var tmp = this._super;
-
-									// Add a new ._super() method that is the same method
-									// but on the super-class
-									this._super = _super;
-									
-									// The method only needs to be bound temporarily, so we
-									// remove it when we're done executing
-									var ret = fn.apply(this, arguments); 
-									this._super = tmp;
-									return ret;
-								}
-							})(properties[name], Class.prototype[name]) :
+							attachSuper(properties[name], Class.prototype[name]) :
 							properties[name];
 					}
 					// Enforce the constructor to be what we expect
@@ -99,8 +98,9 @@
 	var Class = function(child){
 		return new Inheritance(child);
 	}
-	Class.abstract = function(child){
+	Class.abstract  = function(child){
 		return new Inheritance(child, undefined, true);
-	}
+	}	
+	Class.extend = Class;
 	module.exports = Class;
 })();
