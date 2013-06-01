@@ -102,5 +102,6 @@
 		return new Inheritance(child, undefined, true);
 	}	
 	Class.extend = Class;
-	module.exports = Class;
+	if(module) module.exports = Class;
+	else window.Class = Class;
 })();
