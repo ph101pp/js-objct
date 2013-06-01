@@ -1,4 +1,5 @@
 (function(undefined){
+	"use strict";
 	var building = false;
 	var fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
 	var attachSuper = function(fn, _super) {
@@ -19,7 +20,7 @@
 
 			var classes = [_super, child];		
 			for(var i=0; i<classes.length; i++)
-				if(classes[i]) {
+				if(typeof classes[i] === "function") {
 					for(name in classes[i]) {
 						if(["_build", "extend", "_abstract", "_instanceof"].indexOf(name) < 0) 
 							Executable[name]= typeof Executable[name] === "function" ?
@@ -61,7 +62,7 @@
 				return false;
 			};
 			for(var i=0; i<extending.length; i++) {
-				if(''+extending[i] === ''+Executable) Class=extending[i]._build(Class);
+				if(typeof extending[i] === "function" && typeof extending[i]._build === "function") Class=extending[i]._build(Class);
 				else {
 					building = true;
 					Class.prototype = new Class();
