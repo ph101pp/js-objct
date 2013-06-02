@@ -11,9 +11,9 @@
 		}
 	}
 	var addSuperFunctions = function(obj, _super) {
-		var properties = Object.getOwnPropertyNames(obj);
+		var name, properties = Object.getOwnPropertyNames(obj);
 		for(var i=0; i<properties.length; i++){
-			var name = properties[i];
+			name = properties[i];
 			//console.log(name);
 			if(_super[name] !== obj[name]  && typeof obj[name] === "function" && typeof _super[name] === "function" && fnTest.test(obj[name])) 
 				obj[name] = attachSuper(obj[name], _super[name]);
@@ -27,19 +27,22 @@
 			if(child._abstract) abstract = child._abstract();
 			if(_super && !_super._abstract() && abstract) throw("Only abstract classes can be extended by abstract classes.");
 
-			var classes = [_super, child];		
-			for(var i=0; i<classes.length; i++)
-				if(typeof classes[i] === "function") {
-					for(name in classes[i]) {
-						if(["_build", "extend", "_abstract", "_instanceof"].indexOf(name) < 0) 
-							Executable[name]= typeof Executable[name] === "function" ?
-								attachSuper(classes[i][name], Executable[name]):
-								classes[i][name];
-						else if(''+classes[i] !== ''+Executable) 
-							throw("Property names '_build', 'extend', '_instanceof' and '_abstract' are reserved on Class objects. (Sorry)");
+			var classes = [_super, child];	
+			for(var i=0; i<classes.length; i++) {
+				if(typeof classes[i] === "object" || typeof classes[i] === "function"){
+					if(typeof classes[i] === "function") {
+						for(name in classes[i]) {
+							if(["_build", "extend", "_abstract", "_instanceof"].indexOf(name) < 0) 
+								Executable[name]= typeof Executable[name] === "function" ?
+									attachSuper(classes[i][name], Executable[name]):
+									classes[i][name];
+							else if(''+classes[i] !== ''+Executable) 
+								throw("Property names '_build', 'extend', '_instanceof' and '_abstract' are reserved on Class objects. (Sorry)");
+						}
 					}
 					extending.push(classes[i]);
 				}
+			}
 			return Executable;
 		}
 		var Executable = function(){
@@ -48,40 +51,45 @@
 
 			Array.prototype.unshift.call(arguments, null);
 			var instance = Executable._build(undefined, arguments);
-			
-			// // Initialize newly build Class with proper attributes
-			// var instance = new (Function.prototype.bind.apply(Class, arguments)); 
-			// instance=addSuperFunctions(instance, Class.prototype);
 
 			// Add substitution for native instanceof operator
-			if(typeof instance.instanceof !== "function") instance.instanceof = Executable._instanceof;
+			if(typeof instance.instanceof === "undefined") instance.instanceof = Executable._instanceof;
 			else instance._instanceof = Executable._instanceof;
-
 
 			Array.prototype.shift.call(arguments);
 			if(instance.construct) var construct = instance.construct.apply(instance, arguments);
-			return ["object", "function"].indexOf(construct) < 0 ?
-				instance : construct;
+			return typeof construct === "object" || typeof construct === "function" ?
+				construct : instance;
 		}
 		Executable._build = function(Class, args){
+			var isFunction, prototype, instance;
 			// Define _instanceof function for every Executable that gets build.
-			Executable._instanceof = function(child){
-				if(Executable === child) return true;
+			Executable._instanceof = function(fn){
+				if(this instanceof fn || Executable === fn) return true;
 				for(var i=0; i<extending.length; i++) {
-					if(extending[i]._instanceof && extending[i]._instanceof(child)) return true;
-					else if(extending[i] === child) return true
+					if(typeof extending[i]._instanceof === "function" && extending[i]._instanceof(fn)) return true;
+					else if(extending[i] === fn) return true
 				}
 				return false;
 			};
 			for(var i=0; i<extending.length; i++) {
-				if(typeof extending[i] === "function" && typeof extending[i]._build === "function") Class=extending[i]._build(Class, args);
+				isFunction = typeof extending[i] === "function";
+				if(isFunction && typeof extending[i]._build === "function") Class=extending[i]._build(Class, args);
 				else {
 					if(typeof Class === "undefined") {
-						var Class= function(){};
-						Class = new (Function.prototype.bind.apply(extending[i], args));
+						Class = isFunction ?
+							new (Function.prototype.bind.apply(extending[i], args)):
+							extending[i];
 						continue;
 					}
-					var prototype = typeof extending[i] === "function" ?
+					if(!isFunction) {
+						prototype = Class;
+						Class = function(){};
+						Class.prototype=prototype;
+						Class.prototype.constructor = Class;
+						Class = new Class;
+					}
+					prototype = isFunction ?
 						extending[i].prototype:
 						extending[i];
 
@@ -89,18 +97,15 @@
 						Class[name] = prototype[name] !== Class[name]  && typeof prototype[name] === "function" && typeof Class[name] === "function" && fnTest.test(prototype[name]) ?
 							attachSuper(prototype[name], Class[name]):
 							prototype[name];
-
-					if(typeof extending[i] === "function") {
+					
+					if(isFunction) {
 						extending[i].prototype = Class;
 						extending[i].prototype.constructor = extending[i];
-						var instance = new (Function.prototype.bind.apply(extending[i], args));
+						instance = new (Function.prototype.bind.apply(extending[i], args));
 						extending[i].prototype = prototype;
 						extending[i].prototype.constructor = extending[i];
+						Class=addSuperFunctions(instance, Class);
 					}
-					else {
-						var instance = new (Function.prototype.bind.apply(Class, args));
-					}
-					Class=addSuperFunctions(instance, Class);
 				}
 			}
 			return Class;
