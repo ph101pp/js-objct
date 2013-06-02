@@ -11,12 +11,12 @@
 		}
 	}
 	var addSuperFunctions = function(obj, _super) {
-		var name, properties = Object.getOwnPropertyNames(obj);
+		var key, properties = Object.getOwnPropertyNames(obj);
 		for(var i=0; i<properties.length; i++){
-			name = properties[i];
-			//console.log(name);
-			if(_super[name] !== obj[name]  && typeof obj[name] === "function" && typeof _super[name] === "function" && fnTest.test(obj[name])) 
-				obj[name] = attachSuper(obj[name], _super[name]);
+			key = properties[i];
+			//console.log(key);
+			if(_super[key] !== obj[key]  && typeof obj[key] === "function" && typeof _super[key] === "function" && fnTest.test(obj[key])) 
+				obj[key] = attachSuper(obj[key], _super[key]);
 		}
 		return obj;
 	}
@@ -24,6 +24,7 @@
 		var extending = [];
 		var abstract = _abstract || false;
 		var extend = function(child, _super) {
+			var key;
 			if(child._abstract) abstract = child._abstract();
 			if(_super && !_super._abstract() && abstract) throw("Only abstract classes can be extended by abstract classes.");
 
@@ -31,11 +32,11 @@
 			for(var i=0; i<classes.length; i++) {
 				if(typeof classes[i] === "object" || typeof classes[i] === "function"){
 					if(typeof classes[i] === "function") {
-						for(name in classes[i]) {
-							if(["_build", "extend", "_abstract", "_instanceof"].indexOf(name) < 0) 
-								Executable[name]= typeof Executable[name] === "function" ?
-									attachSuper(classes[i][name], Executable[name]):
-									classes[i][name];
+						for(key in classes[i]) {
+							if(["_build", "extend", "_abstract", "_instanceof"].indexOf(key) < 0) 
+								Executable[key]= typeof Executable[key] === "function" ?
+									attachSuper(classes[i][key], Executable[key]):
+									classes[i][key];
 							else if(''+classes[i] !== ''+Executable) 
 								throw("Property names '_build', 'extend', '_instanceof' and '_abstract' are reserved on Class objects. (Sorry)");
 						}
@@ -93,10 +94,10 @@
 						extending[i].prototype:
 						extending[i];
 
-					for(var name in prototype) 
-						Class[name] = prototype[name] !== Class[name]  && typeof prototype[name] === "function" && typeof Class[name] === "function" && fnTest.test(prototype[name]) ?
-							attachSuper(prototype[name], Class[name]):
-							prototype[name];
+					for(var key in prototype) 
+						Class[key] = prototype[key] !== Class[key]  && typeof prototype[key] === "function" && typeof Class[key] === "function" && fnTest.test(prototype[key]) ?
+							attachSuper(prototype[key], Class[key]):
+							prototype[key];
 					
 					if(isFunction) {
 						extending[i].prototype = Class;
