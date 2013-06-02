@@ -1,6 +1,5 @@
 (function(undefined){
 	"use strict";
-	var building = false;
 	var fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
 	var attachSuper = function(fn, _super) {
 		return function() {
@@ -10,6 +9,16 @@
 			this._super = tmp;
 			return ret;
 		}
+	}
+	var addSuperFunctions = function(obj, _super) {
+		var properties = Object.getOwnPropertyNames(obj);
+		for(var i=0; i<properties.length; i++){
+			var name = properties[i];
+			//console.log(name);
+			if(_super[name] !== obj[name]  && typeof obj[name] === "function" && typeof _super[name] === "function" && fnTest.test(obj[name])) 
+				obj[name] = attachSuper(obj[name], _super[name]);
+		}
+		return obj;
 	}
 	var Inheritance = function(child, _super, _abstract){
 		var extending = [];
@@ -38,14 +47,16 @@
 			if(abstract) throw("Abstract class may not be constructed.");
 
 			Array.prototype.unshift.call(arguments, null);
-			var Class = Executable._build(undefined, arguments);
+			var instance = Executable._build(undefined, arguments);
 			
-			// Initialize newly build Class with proper attributes
-			var instance = new (Function.prototype.bind.apply(Class, arguments)); 
+			// // Initialize newly build Class with proper attributes
+			// var instance = new (Function.prototype.bind.apply(Class, arguments)); 
+			// instance=addSuperFunctions(instance, Class.prototype);
 
 			// Add substitution for native instanceof operator
 			if(typeof instance.instanceof !== "function") instance.instanceof = Executable._instanceof;
 			else instance._instanceof = Executable._instanceof;
+
 
 			Array.prototype.shift.call(arguments);
 			if(instance.construct) var construct = instance.construct.apply(instance, arguments);
@@ -59,33 +70,37 @@
 				for(var i=0; i<extending.length; i++) {
 					if(extending[i]._instanceof && extending[i]._instanceof(child)) return true;
 					else if(extending[i] === child) return true
-				} 
+				}
 				return false;
 			};
 			for(var i=0; i<extending.length; i++) {
-				if(typeof extending[i] === "function" && typeof extending[i]._build === "function") Class=extending[i]._build(Class,args);
+				if(typeof extending[i] === "function" && typeof extending[i]._build === "function") Class=extending[i]._build(Class, args);
 				else {
 					if(typeof Class === "undefined") {
 						var Class= function(){};
-						Class.prototype = extending[i].prototype.__proto__;
+						Class = new (Function.prototype.bind.apply(extending[i], args));
+						continue;
 					}
-					var prototype = new Class;
-					
-					var instance = typeof extending[i] === "function" ?
-						new (Function.prototype.bind.apply(extending[i], args)):
+					var prototype = typeof extending[i] === "function" ?
+						extending[i].prototype:
 						extending[i];
 
-					//console.log(bla);
-					for (var name in instance) {
-					//	console.log(name);
-						// Check if we have to wrap the function either because it has a _super function or because it needs its own private closure.
-						prototype[name] = typeof instance[name] === "function" && instance[name] !== prototype[name] && typeof prototype[name] === "function" && fnTest.test(instance[name]) ?
-							attachSuper(instance[name], prototype[name]) :
-							instance[name];
+					for(var name in prototype) 
+						Class[name] = prototype[name] !== Class[name]  && typeof prototype[name] === "function" && typeof Class[name] === "function" && fnTest.test(prototype[name]) ?
+							attachSuper(prototype[name], Class[name]):
+							prototype[name];
+
+					if(typeof extending[i] === "function") {
+						extending[i].prototype = Class;
+						extending[i].prototype.constructor = extending[i];
+						var instance = new (Function.prototype.bind.apply(extending[i], args));
+						extending[i].prototype = prototype;
+						extending[i].prototype.constructor = extending[i];
 					}
-					// Enforce the constructor to be what we expect
-					Class.prototype = prototype;
-					Class.prototype.constructor = extending[i];
+					else {
+						var instance = new (Function.prototype.bind.apply(Class, args));
+					}
+					Class=addSuperFunctions(instance, Class);
 				}
 			}
 			return Class;
