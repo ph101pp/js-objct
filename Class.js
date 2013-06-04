@@ -16,9 +16,8 @@
 		var abstractMethods = [];
 		var extend = function(child, _super) {
 			var key;
-			if(child._abstract) abstract = child._abstract();
-
 			var classes = [_super, child];	
+			if(child._abstract) abstract = child._abstract();
 			for(var i=0; i<classes.length; i++) {
 				if(typeof classes[i] === "object" || typeof classes[i] === "function"){
 					if(typeof classes[i] === "function") {
@@ -49,8 +48,8 @@
 				if(instance[abstractMethods[i]] === Function) 
 					throw("Abstract method '"+abstractMethods[i]+"' needs to be defined.");
 
-			// Add substitution for native instanceof operator
-			if(typeof instance.instanceof === "undefined") 
+			// Add or update substitution for native instanceof operator
+			if(typeof instance.instanceof === "undefined" || ""+instance.instanceof === ""+Executable._instanceof) 
 				instance.instanceof = Executable._instanceof;
 			else 
 				instance._instanceof = Executable._instanceof;
