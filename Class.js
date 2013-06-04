@@ -17,7 +17,8 @@
 		var extend = function(child, _super) {
 			var key;
 			if(child._abstract) abstract = child._abstract();
-			if(_super && !_super._abstract() && abstract) throw("Only abstract classes can be extended by abstract classes.");
+			if(_super && !_super._abstract() && abstract) 
+				throw("Only abstract classes can be extended by abstract classes.");
 
 			var classes = [_super, child];	
 			for(var i=0; i<classes.length; i++) {
@@ -38,38 +39,47 @@
 			return Executable;
 		}
 		var Executable = function(){
-			if(!(this instanceof Executable)) throw("Classes need to be initiated with the new operator.");
-			if(abstract) throw("Abstract class may not be constructed.");
+			if(!(this instanceof Executable)) 
+				throw("Classes need to be initiated with the new operator.");
+			if(abstract) 
+				throw("Abstract class may not be constructed.");
 
 			Array.prototype.unshift.call(arguments, null);
 			var instance = Executable._build(undefined, arguments, abstractMethods);
 
 			for(var i =0; i<abstractMethods.length; i++) 
-				if(instance[abstractMethods[i]] === Function) throw("Abstract method '"+abstractMethods[i]+"' needs to be defined.");
+				if(instance[abstractMethods[i]] === Function) 
+					throw("Abstract method '"+abstractMethods[i]+"' needs to be defined.");
 
 			// Add substitution for native instanceof operator
-			if(typeof instance.instanceof === "undefined") instance.instanceof = Executable._instanceof;
-			else instance._instanceof = Executable._instanceof;
+			if(typeof instance.instanceof === "undefined") 
+				instance.instanceof = Executable._instanceof;
+			else 
+				instance._instanceof = Executable._instanceof;
 
 			Array.prototype.shift.call(arguments);
-			if(instance.construct) var construct = instance.construct.apply(instance, arguments);
+			if(instance.construct) 
+				var construct = instance.construct.apply(instance, arguments);
 			return typeof construct === "object" || typeof construct === "function" ?
 				construct : instance;
 		}
 		Executable._build = function(Class, args, abstractMethods){
-			var isFunction, prototype, instance, keys;
+			var isFunction, proto, instance, keys;
 			// Define _instanceof function for every Executable that gets build.
 			Executable._instanceof = function(fn){
 				if(this instanceof fn || Executable === fn) return true;
 				for(var i=0; i<extending.length; i++) {
-					if(typeof extending[i]._instanceof === "function" && extending[i]._instanceof(fn)) return true;
-					else if(extending[i] === fn) return true
+					if(typeof extending[i]._instanceof === "function" && extending[i]._instanceof(fn)) 
+						return true;
+					else if(extending[i] === fn) 
+						return true
 				}
 				return false;
 			};
 			for(var i=0; i<extending.length; i++) {
 				isFunction = typeof extending[i] === "function";
-				if(isFunction && typeof extending[i]._build === "function") Class=extending[i]._build(Class, args, abstractMethods);
+				if(isFunction && typeof extending[i]._build === "function") 
+					Class=extending[i]._build(Class, args, abstractMethods);
 				else {
 					if(typeof Class === "undefined") {
 						Class = isFunction ?
@@ -82,32 +92,33 @@
 						continue;
 					}
 					if(!isFunction) {
-						prototype = Class;
+						proto = Class;
 						Class = function(){};
-						Class.prototype=prototype;
+						Class.prototype=proto;
 						Class.prototype.constructor = Class;
 						Class = new Class;
 					}
-					prototype = isFunction ?
+					proto = isFunction ?
 						extending[i].prototype:
 						extending[i];
 
-					for(var key in prototype) {
-						if(abstract && prototype[key] === Function) {
+					for(var key in proto) {
+						if(abstract && proto[key] === Function) {
 							abstractMethods.push(key);
-							if(Class[key] && Class[key] !== Function) throw("Can't override '"+key+"' with abstract method.");
-							Class[key] = prototype[key];
+							if(Class[key] && Class[key] !== Function) 
+								throw("Can't override '"+key+"' with abstract method.");
+							Class[key] = proto[key];
 						}
-						else Class[key] = prototype[key] !== Class[key]  && typeof prototype[key] === "function" && typeof Class[key] === "function" && fnTest.test(prototype[key]) ?
-							attachSuper(prototype[key], Class[key]):
-							prototype[key];
+						else Class[key] = proto[key] !== Class[key]  && typeof proto[key] === "function" && typeof Class[key] === "function" && fnTest.test(proto[key]) ?
+							attachSuper(proto[key], Class[key]):
+							proto[key];
 					}
 					
 					if(isFunction) {
 						extending[i].prototype = Class;
 						extending[i].prototype.constructor = extending[i];
 						instance = new (Function.prototype.bind.apply(extending[i], args));
-						extending[i].prototype = prototype;
+						extending[i].prototype = proto;
 						extending[i].prototype.constructor = extending[i];
 
 						if(fnTest.test(extending[i]) || abstract) {
@@ -115,7 +126,8 @@
 							for(var i=0; i<keys.length; i++){
 								if(abstract && instance[keys[i]] === Function) {
 									abstractMethods.push(keys[i]);
-									if(Class[keys[i]] && Class[keys[i]] !== Function) throw("Can't override '"+keys[i]+"' with abstract method.");
+									if(Class[keys[i]] && Class[keys[i]] !== Function) 
+										throw("Can't override '"+keys[i]+"' with abstract method.");
 									continue;
 								}
 								else if(Class[keys[i]] !== instance[keys[i]]  && typeof instance[keys[i]] === "function" && typeof Class[keys[i]] === "function" && fnTest.test(instance[keys[i]])) 
@@ -146,6 +158,6 @@
 		return new Inheritance(child, undefined, true);
 	}	
 	Class.extend = Class;
-	if(module) module.exports = Class;
+	if(typeof module === "object") module.exports = Class;
 	else window.Class = Class;
 })();
