@@ -17,8 +17,6 @@
 		var extend = function(child, _super) {
 			var key;
 			if(child._abstract) abstract = child._abstract();
-			if(_super && !_super._abstract() && abstract) 
-				throw("Only abstract classes can be extended by abstract classes.");
 
 			var classes = [_super, child];	
 			for(var i=0; i<classes.length; i++) {
