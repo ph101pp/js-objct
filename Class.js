@@ -10,19 +10,10 @@
 			return ret;
 		}
 	}
-	var addSuperFunctions = function(obj, _super) {
-		var key, properties = Object.getOwnPropertyNames(obj);
-		for(var i=0; i<properties.length; i++){
-			key = properties[i];
-			//console.log(key);
-			if(_super[key] !== obj[key]  && typeof obj[key] === "function" && typeof _super[key] === "function" && fnTest.test(obj[key])) 
-				obj[key] = attachSuper(obj[key], _super[key]);
-		}
-		return obj;
-	}
 	var Inheritance = function(child, _super, _abstract){
 		var extending = [];
 		var abstract = _abstract || false;
+		var abstractMethods = [];
 		var extend = function(child, _super) {
 			var key;
 			if(child._abstract) abstract = child._abstract();
@@ -51,7 +42,10 @@
 			if(abstract) throw("Abstract class may not be constructed.");
 
 			Array.prototype.unshift.call(arguments, null);
-			var instance = Executable._build(undefined, arguments);
+			var instance = Executable._build(undefined, arguments, abstractMethods);
+
+			for(var i =0; i<abstractMethods.length; i++) 
+				if(instance[abstractMethods[i]] === Function) throw("Abstract method '"+abstractMethods[i]+"' needs to be defined.");
 
 			// Add substitution for native instanceof operator
 			if(typeof instance.instanceof === "undefined") instance.instanceof = Executable._instanceof;
@@ -62,8 +56,8 @@
 			return typeof construct === "object" || typeof construct === "function" ?
 				construct : instance;
 		}
-		Executable._build = function(Class, args){
-			var isFunction, prototype, instance;
+		Executable._build = function(Class, args, abstractMethods){
+			var isFunction, prototype, instance, keys;
 			// Define _instanceof function for every Executable that gets build.
 			Executable._instanceof = function(fn){
 				if(this instanceof fn || Executable === fn) return true;
@@ -75,12 +69,16 @@
 			};
 			for(var i=0; i<extending.length; i++) {
 				isFunction = typeof extending[i] === "function";
-				if(isFunction && typeof extending[i]._build === "function") Class=extending[i]._build(Class, args);
+				if(isFunction && typeof extending[i]._build === "function") Class=extending[i]._build(Class, args, abstractMethods);
 				else {
 					if(typeof Class === "undefined") {
 						Class = isFunction ?
 							new (Function.prototype.bind.apply(extending[i], args)):
 							extending[i];
+						if(abstract)
+							for(var key in Class)
+								if(Class[key] === Function)
+									abstractMethods.push(key); 
 						continue;
 					}
 					if(!isFunction) {
@@ -94,10 +92,16 @@
 						extending[i].prototype:
 						extending[i];
 
-					for(var key in prototype) 
-						Class[key] = prototype[key] !== Class[key]  && typeof prototype[key] === "function" && typeof Class[key] === "function" && fnTest.test(prototype[key]) ?
+					for(var key in prototype) {
+						if(abstract && prototype[key] === Function) {
+							abstractMethods.push(key);
+							if(Class[key] && Class[key] !== Function) throw("Can't override '"+key+"' with abstract method.");
+							Class[key] = prototype[key];
+						}
+						else Class[key] = prototype[key] !== Class[key]  && typeof prototype[key] === "function" && typeof Class[key] === "function" && fnTest.test(prototype[key]) ?
 							attachSuper(prototype[key], Class[key]):
 							prototype[key];
+					}
 					
 					if(isFunction) {
 						extending[i].prototype = Class;
@@ -105,7 +109,20 @@
 						instance = new (Function.prototype.bind.apply(extending[i], args));
 						extending[i].prototype = prototype;
 						extending[i].prototype.constructor = extending[i];
-						Class=addSuperFunctions(instance, Class);
+
+						if(fnTest.test(extending[i]) || abstract) {
+							keys = Object.getOwnPropertyNames(instance);
+							for(var i=0; i<keys.length; i++){
+								if(abstract && instance[keys[i]] === Function) {
+									abstractMethods.push(keys[i]);
+									if(Class[keys[i]] && Class[keys[i]] !== Function) throw("Can't override '"+keys[i]+"' with abstract method.");
+									continue;
+								}
+								else if(Class[keys[i]] !== instance[keys[i]]  && typeof instance[keys[i]] === "function" && typeof Class[keys[i]] === "function" && fnTest.test(instance[keys[i]])) 
+									instance[keys[i]] = attachSuper(instance[keys[i]], Class[keys[i]]);
+							}
+						}
+						Class = instance;
 					}
 				}
 			}
