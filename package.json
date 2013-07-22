@@ -8,5 +8,17 @@
     "type": "git",
     "url": "https://github.com/greenish/js-superClass.git"
   },
+  "keywords": [
+    "inherit",
+    "modular",
+    "extend",
+    "abstract",
+    "super",
+    "class",
+    "prototype",
+    "base",
+    "private",
+    "closure"
+  ],
   "license": "MIT"
 }
