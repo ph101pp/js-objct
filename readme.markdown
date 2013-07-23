@@ -7,14 +7,15 @@ A JavaScript modular inheritance class that works nicely with browserify, Common
 __Keyfeatures:__
 
 * Functions and Objects can extend and be extended.
-* Private Methods. Closures are preserved and kept separateed for each instance.
-* Overwritten Methods can be accessed with the _super keyword.
+* Objects can be modular assembled for each class.
+* Private, privileged and public methods. Closures are preserved and kept separated for each instance.
 * "Static" object methods are preserved and passed along.
+* Overwritten Methods can be accessed with the _super keyword.
 * Possibility to define abstract classes and methods
 
 ----------------
 
-I developed the superClass for my Bachelor Project, where I used a node server and browserify to serve the JavaScript.
+I developed the superClass for my bachelor thesis project, where I used a node server and browserify to serve the JavaScript.
 
 Because this class turned out to be pretty valuable I decided to create this spin off project.
 
@@ -24,7 +25,7 @@ Because this class turned out to be pretty valuable I decided to create this spi
 1.	General
 ----------------
 	
-Get the superClass from GitHub or via npm by running:
+Get the superClass from GitHub or via npm by running in your terminal:
 
 ```
 npm install superClass
@@ -33,12 +34,81 @@ npm install superClass
 You're good to go!
 
 	
-2. Extend
+2. Extend public methods
 ----------------
-	
+
+####Public Methods and properties
+
+
 ``` javascript
-$(".myElement").slides([Object options]);				
+var superClass = require("superClass");
+
+var human = function(){
+
+	this.name;
+
+	this.walk = function(){
+		console.log("walking");
+	}
+
+	this.talk = function(){
+		console.log("talking");
+	}
+
+}
+
+human.prototype.eat = function() {
+	console.log("eating");
+}
+
+var child = {
+	play:function(){
+		console.log("playing");
+	},
+	setName: function(name){
+		this.name=name;
+	}
+}
+
+var adult = function(){
+	this.work = function(){
+		console.log("working");
+	}
+
+}
+
+
+var myChild = superClass(human).extend(child);
+var myAdult = superClass(human).extend(adult);
+
+
+var anna = new myChild();
+anna.setName("Anna");
+ anna.tellName() 			// Log: "Anna"
+
+var otto = new myChild();
+otto.setName("Otto");
+console.log(otto.name)		// Log: "Otto" 
+
+
+
+
+
+
 ```
+
+3. _super
+----------------
+
+
+
+
+
+
+
+
+
+
 
 > ####Initialize / Update Options
 >
