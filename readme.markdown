@@ -7,17 +7,20 @@ A JavaScript modular inheritance class that works nicely with browserify, Common
 __Keyfeatures:__
 
 * Functions and Objects can extend and be extended.
-* Objects can be modular assembled for each class.
+* Easy definable constructor function
+* Objects can be modular assembled for each new class.
 * Private, privileged and public methods. Closures are preserved and kept separated for each instance.
-* "Static" object methods are preserved and passed along.
-* Overwritten Methods can be accessed with the _super keyword.
+* Overwritten methods can be accessed with the _super keyword.
 * Possibility to define abstract classes and methods
+* "Static" object methods are preserved and passed along.
 
 ----------------
 
 I developed the superClass for my bachelor thesis project, where I used a node server and browserify to serve the JavaScript.
 
 Because this class turned out to be pretty valuable I decided to create this spin off project.
+
+Here is what you can do, using the old car example:
 
 
 #Documentation
@@ -34,64 +37,118 @@ npm install superClass
 You're good to go!
 
 	
-2. Extend public methods
+2. Modular Objects and Functions
 ----------------
 
-####Public Methods and properties
+``` javascript
+
+var superClass = require("superClass");
+
+var car = {
+
+	drive : function(){
+		return "driving";
+	},
+
+	slowDown : function(){
+		return "slowing down";
+	}
+}
+
+var featureAirConditioner =  {
+
+	AC : false,
+
+	toggleAC : function(){
+		this.AC = !this.AC;
+	},
+
+	hasAC: function(){
+		return true;
+	}
+
+}
+
+var featureNavi = function (){
+
+	this.navi = false
+	
+	this.searchAddress= function(address) {
+		return "looking for address";
+	}
+
+	this.toggleNavi = function(){
+		this.navi = !this.navi;
+	}
+
+	this.hasNavi=function(){
+		return true;
+	}
+	
+}
+
+
+var Smart = superClass(car).extend(featureNavi);
+
+var Mini = superClass(car, featureAirConditioner);
+
+var Fiat = superClass(car).extend(featureAirConditioner).extend(featureNavi)
+
+
+var smart = Smart() 	// Error: "Classes need to be initiated with the new operator."
+
+var smart = new Smart();
+var mini = new Mini();
+var fiat = new Fiat();
+var customSmart = new (Smart.extend(featureAirConditioner))();
+
+
+smart.hasNavi() 		// true
+smart.hasAC()			// undefined
+smart.drive()			// driving
+
+mini.hasNavi() 			// undefined
+mini.hasAC()			// true
+mini.drive()			// driving
+
+fiat.hasNavi() 			// true
+fiat.hasAC()			// true
+fiat.drive()			// driving
+
+customSmart.hasNavi() 	// true
+customSmart.hasAC()		// true
+customSmart.drive()		// driving
+
+
+```
+
+
 
 
 ``` javascript
+
 var superClass = require("superClass");
 
-var human = function(){
+var car = function(){
 
-	this.name;
-
-	this.walk = function(){
-		console.log("walking");
+	this.drive = function(){
+			
 	}
 
-	this.talk = function(){
-		console.log("talking");
-	}
+	this.slowDown = function(){
 
-}
-
-human.prototype.eat = function() {
-	console.log("eating");
-}
-
-var child = {
-	play:function(){
-		console.log("playing");
-	},
-	setName: function(name){
-		this.name=name;
 	}
 }
 
-var adult = function(){
-	this.work = function(){
-		console.log("working");
+var pickup = function(){
+	
+	this.enable4x4 = function(){
+
 	}
 
+	this.
+
 }
-
-
-var myChild = superClass(human).extend(child);
-var myAdult = superClass(human).extend(adult);
-
-
-var anna = new myChild();
-anna.setName("Anna");
- anna.tellName() 			// Log: "Anna"
-
-var otto = new myChild();
-otto.setName("Otto");
-console.log(otto.name)		// Log: "Otto" 
-
-
-
 
 
 
