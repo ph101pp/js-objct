@@ -174,7 +174,10 @@
 		return extend(child, _super);
 	}
 	var superClass = function(parent, child){
-		return new Inheritance(child);
+		parent = new Inheritance(parent);
+		return child ?
+			parent.extend(child):
+			parent;
 	}
 	superClass.abstract  = function(child){
 		return new Inheritance(child, undefined, true);
