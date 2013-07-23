@@ -31,7 +31,7 @@ Here is what you can do, using the old car example:
 Get the superClass from GitHub or via npm by running in your terminal:
 
 ```
-npm install superClass
+$ npm install superClass
 ```
 
 You're good to go!
@@ -44,56 +44,32 @@ You're good to go!
 
 var superClass = require("superClass");
 
+// Object
 var car = {
-
 	drive : function(){
 		return "driving";
-	},
-
-	slowDown : function(){
-		return "slowing down";
 	}
 }
 
 var featureAirConditioner =  {
-
-	AC : false,
-
-	toggleAC : function(){
-		this.AC = !this.AC;
-	},
-
 	hasAC: function(){
 		return true;
 	}
-
 }
 
+// Function
 var featureNavi = function (){
-
-	this.navi = false
-	
-	this.searchAddress= function(address) {
-		return "looking for address";
-	}
-
-	this.toggleNavi = function(){
-		this.navi = !this.navi;
-	}
-
 	this.hasNavi=function(){
 		return true;
 	}
-	
 }
 
 
-var Smart = superClass(car).extend(featureNavi);
+var Mini 		= superClass(car, featureAirConditioner);
+var Smart 		= superClass(car).extend(featureNavi);
+var Fiat 		= superClass(car).extend(featureAirConditioner).extend(featureNavi);
 
-var Mini = superClass(car, featureAirConditioner);
-
-var Fiat = superClass(car).extend(featureAirConditioner).extend(featureNavi)
-
+var customSmart	= Smart.extend(featureAirConditioner);
 
 var smart = Smart() 	// Error: "Classes need to be initiated with the new operator."
 
