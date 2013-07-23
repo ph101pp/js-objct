@@ -173,13 +173,13 @@
 		}	
 		return extend(child, _super);
 	}
-	var Class = function(child){
+	var superClass = function(parent, child){
 		return new Inheritance(child);
 	}
-	Class.abstract  = function(child){
+	superClass.abstract  = function(child){
 		return new Inheritance(child, undefined, true);
 	}	
-	Class.extend = Class;
-	if(typeof module === "object") module.exports = Class;
-	else window.Class = Class;
+	superClass.extend = superClass;
+	if(typeof module === "object") module.exports = superClass;
+	else window.superClass = superClass;
 })();
