@@ -37,47 +37,43 @@ $ npm install superClass
 You're good to go!
 
 	
-2. Modular extension of Objects and functions
+2. Extend Public Methods and Properties
 ----------------
-
-####Extend Public Methods and Properties
 
 ``` javascript
 var superClass = require("superClass");
 
-// Object
-var standartCar = {
+
+var standardCar = {						// Object
 	drive : function(){
 		return "driving";
 	}
 }
 
-// Object with public property
-var featureAirConditioner =  {
+var featureAirConditioner =  {			// Object with public property
 	hasAC: true
 }
 
-// Function with public method
-var featureNavi = function (){
+var featureNavi = function (){			// Function with public method
 	this.hasNavi=function(){
 		return true;
 	}
 }
 
 
-var Mini 		= superClass(standartCar, featureAirConditioner);
-var Smart 		= superClass(standartCar).extend(featureNavi);
-var Fiat 		= superClass(standartCar).extend(featureAirConditioner).extend(featureNavi);
+var Mini 		= superClass(standardCar, featureAirConditioner);
+var Smart 		= superClass(standardCar).extend(featureNavi);
+var Fiat 		= superClass(standardCar).extend(featureAirConditioner).extend(featureNavi);
 
 var CustomSmart = Smart.extend(featureAirConditioner);
 
-var smart 		= Smart() 						// Error: "Classes need to be initiated with the new operator."
+var smart 		= Smart() 				// Error: "Classes need to be initiated with the new operator."
 
-var car 		= new standartCar();			// { drive:Function }
-var smart 		= new Smart();					// { drive:Function, hasNavi:Function }
-var mini 		= new Mini();					// { drive:Function, hasAC:true }
-var fiat 		= new Fiat();					// { drive:Function, hasAC:true, hasNavi:Function }
-var customSmart = new CustomSmart();			// { drive:Function, hasAC:true, hasNavi:Function }
+var car 		= new standardCar();	// { drive:Function }
+var smart 		= new Smart();			// { drive:Function, hasNavi:Function }
+var mini 		= new Mini();			// { drive:Function, hasAC:true }
+var fiat 		= new Fiat();			// { drive:Function, hasAC:true, hasNavi:Function }
+var customSmart = new CustomSmart();	// { drive:Function, hasAC:true, hasNavi:Function }
 
 
 car.hasNavi(); 									// undefined
@@ -99,11 +95,10 @@ fiat.drive();									// driving
 customSmart.hasNavi(); 							// true
 customSmart.hasAC;								// true
 customSmart.drive();							// driving
-
-
 ```
 
-####Constructor
+2. Constructor
+----------------
 
 A public construct() method will be used as constructor and called on instanciation of the class.
 
@@ -124,13 +119,11 @@ var Car = superClass({
 	}
 });
 
-
 var Sculpture = Car.extend(function(){
 	this.construct = function(brand){
 		return { brand:brand };					// not omitted
 	}
 });
-
 
 var mini 			= new Car("Mini");			// { brand:"Mini", 	construct:Function,	drive:Function };
 var smart 			= new Car("Smart");			// { brand:"Smart", construct:Function,	drive:Function };
@@ -144,16 +137,46 @@ smart.drive();									// driving
 
 fiatSculpture.brand;							// "Fiat"
 fiatSculpture.drive();							// undefined
-
-
-
-
-
 ```
 
-3. _super
+3. _super Keyword
 ----------------
 
+Overwritten methods can be accessed by the this._super keyword.
+
+``` javascript
+var superClass = require("superClass");
+
+var Car = superClass(function(){
+	this.getDescription = function(){
+		return "Standard car";
+	}
+});
+
+var featureAirConditioner =  {
+	getDescription : function(){
+		return this._super()+" with AC";
+	}
+}
+
+var featureNavi = function (){
+	this.getDescription = function(){
+		return this._super()+" and navi";
+	}
+}
+
+var Mini 		= Car.extend(featureAirConditioner);
+var Smart 		= Car.extend(featureNavi);
+var Fiat 		= Car.extend(featureAirConditioner).extend(featureNavi);
+
+var mini 		= new Mini();	
+var smart 		= new Smart();	
+var fiat 		= new Fiat();		
+
+mini.getDescription();			// "Standard car with AC"
+smart.getDescription();			// "Standard car and navi"
+fiat.getDescription();			// "Standard car with AC and navi"
+```
 
 
 
