@@ -37,27 +37,27 @@ $ npm install superClass
 You're good to go!
 
 	
-2. Modular Objects and Functions
+2. Modular extension of Objects and functions
 ----------------
 
-``` javascript
+####Extend Public Methods and Properties
 
+``` javascript
 var superClass = require("superClass");
 
 // Object
-var car = {
+var standartCar = {
 	drive : function(){
 		return "driving";
 	}
 }
 
+// Object with public property
 var featureAirConditioner =  {
-	hasAC: function(){
-		return true;
-	}
+	hasAC: true
 }
 
-// Function
+// Function with public method
 var featureNavi = function (){
 	this.hasNavi=function(){
 		return true;
@@ -65,66 +65,87 @@ var featureNavi = function (){
 }
 
 
-var Mini 		= superClass(car, featureAirConditioner);
-var Smart 		= superClass(car).extend(featureNavi);
-var Fiat 		= superClass(car).extend(featureAirConditioner).extend(featureNavi);
+var Mini 		= superClass(standartCar, featureAirConditioner);
+var Smart 		= superClass(standartCar).extend(featureNavi);
+var Fiat 		= superClass(standartCar).extend(featureAirConditioner).extend(featureNavi);
 
-var customSmart	= Smart.extend(featureAirConditioner);
+var CustomSmart = Smart.extend(featureAirConditioner);
 
-var smart = Smart() 	// Error: "Classes need to be initiated with the new operator."
+var smart 		= Smart() 						// Error: "Classes need to be initiated with the new operator."
 
-var smart = new Smart();
-var mini = new Mini();
-var fiat = new Fiat();
-var customSmart = new (Smart.extend(featureAirConditioner))();
+var car 		= new standartCar();			// { drive:Function }
+var smart 		= new Smart();					// { drive:Function, hasNavi:Function }
+var mini 		= new Mini();					// { drive:Function, hasAC:true }
+var fiat 		= new Fiat();					// { drive:Function, hasAC:true, hasNavi:Function }
+var customSmart = new CustomSmart();			// { drive:Function, hasAC:true, hasNavi:Function }
 
 
-smart.hasNavi() 		// true
-smart.hasAC()			// undefined
-smart.drive()			// driving
+car.hasNavi(); 									// undefined
+car.hasAC; 										// undefined
+car.drive();									// driving
 
-mini.hasNavi() 			// undefined
-mini.hasAC()			// true
-mini.drive()			// driving
+smart.hasNavi(); 								// true
+smart.hasAC; 									// undefined
+smart.drive();									// driving
 
-fiat.hasNavi() 			// true
-fiat.hasAC()			// true
-fiat.drive()			// driving
+mini.hasNavi();									// undefined
+mini.hasAC;										// true
+mini.drive();									// driving
 
-customSmart.hasNavi() 	// true
-customSmart.hasAC()		// true
-customSmart.drive()		// driving
+fiat.hasNavi();						 			// true
+fiat.hasAC;										// true
+fiat.drive();									// driving
+
+customSmart.hasNavi(); 							// true
+customSmart.hasAC;								// true
+customSmart.drive();							// driving
 
 
 ```
 
+####Constructor
 
+A public construct() method will be used as constructor and called on instanciation of the class.
+
+If the return value of the constructor is a function or an object, this will be returned instead of the newly created object reference. All other return values get omitted.
 
 
 ``` javascript
-
 var superClass = require("superClass");
 
-var car = function(){
-
-	this.drive = function(){
-			
+var Car = superClass({
+	brand:null,
+	construct : function(brand){
+		this.brand = brand;
+		return "new car";						// omitted
+	},
+	drive : function(){
+		return "driving";
 	}
+});
 
-	this.slowDown = function(){
 
+var Sculpture = Car.extend(function(){
+	this.construct = function(brand){
+		return { brand:brand };					// not omitted
 	}
-}
+});
 
-var pickup = function(){
-	
-	this.enable4x4 = function(){
 
-	}
+var mini 			= new Car("Mini");			// { brand:"Mini", 	construct:Function,	drive:Function };
+var smart 			= new Car("Smart");			// { brand:"Smart", construct:Function,	drive:Function };
+var fiatSculpture	= new Sculpture("Fiat");	// { brand:"Fiat" };
 
-	this.
+mini.brand;										// "Mini"
+mini.drive();									// driving
 
-}
+smart.brand;									// "Smart"
+smart.drive();									// driving
+
+fiatSculpture.brand;							// "Fiat"
+fiatSculpture.drive();							// undefined
+
+
 
 
 
