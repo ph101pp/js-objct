@@ -190,11 +190,9 @@ var superClass = require("superClass");
 
 var Car = superClass(function(){
 	var brand;
-
 	this.construct = function(_brand){
 		brand=_brand
 	}
-
 	this.drive = function(){
 		return brand+"driving";
 	}
@@ -203,16 +201,13 @@ var Car = superClass(function(){
 var featureCargoArea =  function(){
 	var cargo = [],
 		areaSize;
-
 	var checkCargo = function(){
 		return cargo.length <= areaSize ? true : false;
 	}
-
 	this.construct = function(_brand, _areaSize){
 		areaSize=_areaSize;
 		this.super(_brand);
 	}
-
 	this.addCargo = function(_cargo){
 		if( checkCargo() ) {
 			cargo.push(_cargo);
@@ -220,7 +215,6 @@ var featureCargoArea =  function(){
 		}
 		else return "Cargo area full";
 	}
-
 	this.getCargo = function(){
 		return cargo.join(", ");
 	}
@@ -262,53 +256,51 @@ Existing Methods can't be overwritten by abstract methods.
 
 ``` javascript
 var superClass = require("superClass");
-
+/////////////////////////////////////////////////////////
 var Car = superClass.abstract(function(){
 	var brand;
-
+	/////////////////////////////////////////////////////////
 	this.construct = function(_brand){
 		brand=_brand
 	}
-
+	/////////////////////////////////////////////////////////
 	this.drive = Function;
-
+	/////////////////////////////////////////////////////////
 	this.slowDown = function(){
 		return "slowing down";
 	}
 });
-
-
+/////////////////////////////////////////////////////////
 var Mini = Car.extend(function(){
 	this.hasNavi = true;
 }
-
+/////////////////////////////////////////////////////////
 var Smart = Car.extend(function(){
 	this.drive= function(){
 		return "driving"
 	}
 }
-
+/////////////////////////////////////////////////////////
 var Pickup = Car.extend.abstract(){
 	this.hasCargoArea = true;
 }
-
-
+/////////////////////////////////////////////////////////
 var Ford = Pickup.extend(function(){	
 	this.drive=function(){
 		return "driving with 4x4";
 	}		
 });
-
+/////////////////////////////////////////////////////////
 var CustomBreaks = Car.extend.abstract(function(){
 	this.slowDown = Function;
 }
-
-var Fiat = Car.extends.abstract(CustomBreaks).extends(function(){
+/////////////////////////////////////////////////////////
+var Fiat = Car.extend.abstract(CustomBreaks).extend(function(){
 	this.drive= function(){
 		return "driving";
 	}
 })
-
+/////////////////////////////////////////////////////////
 
 var Car 			= new Car();			// Error "Abstract class may not be constructed."
 var mini 			= new Mini();			// Error "Abstract method 'drive' needs to be defined."
