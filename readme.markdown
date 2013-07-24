@@ -43,29 +43,43 @@ You're good to go!
 ``` javascript
 var superClass = require("superClass");
 
+///////////////////////////////////////////////////////////////////////////////
 
 var standardCar = {						// Object
+
 	drive : function(){
 		return "driving";
 	}
+
 }
+
+///////////////////////////////////////////////////////////////////////////////
 
 var featureAirConditioner =  {			// Object with public property
+
 	hasAC: true
+
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
 var featureNavi = function (){			// Function with public method
+
 	this.hasNavi=function(){
 		return true;
 	}
+
 }
 
+///////////////////////////////////////////////////////////////////////////////
 
 var Mini 		= superClass(standardCar, featureAirConditioner);
 var Smart 		= superClass(standardCar).extend(featureNavi);
 var Fiat 		= superClass(standardCar).extend(featureAirConditioner).extend(featureNavi);
 
 var CustomSmart = Smart.extend(featureAirConditioner);
+
+///////////////////////////////////////////////////////////////////////////////
 
 var smart 		= Smart(); 				// Error: "Classes need to be initiated with the new operator."
 
@@ -108,22 +122,34 @@ If the return value of the constructor is a function or an object, this will be 
 ``` javascript
 var superClass = require("superClass");
 
+///////////////////////////////////////////////////////////////////////////////
+
 var Car = superClass({
+
 	brand:null,
+
 	construct : function(brand){
 		this.brand = brand;
 		return "new car";						// omitted
 	},
+
 	drive : function(){
 		return "driving";
 	}
+
 });
 
+///////////////////////////////////////////////////////////////////////////////
+
 var BrokenCar = Car.extend(function(){
+
 	this.construct = function(brand){
 		return { brand:brand };					// not omitted
 	}
+
 });
+
+///////////////////////////////////////////////////////////////////////////////
 
 var mini 			= new Car("Mini");			// { brand:"Mini", 	construct:Function,	drive:Function };
 var smart 			= new Car("Smart");			// { brand:"Smart", construct:Function,	drive:Function };
@@ -147,27 +173,43 @@ Overwritten methods can be accessed by the this._super keyword.
 ``` javascript
 var superClass = require("superClass");
 
+///////////////////////////////////////////////////////////////////////////////
+
 var Car = superClass(function(){
+
 	this.getDescription = function(){
 		return "Standard car";
 	}
+
 });
 
+///////////////////////////////////////////////////////////////////////////////
+
 var featureAirConditioner =  {
+
 	getDescription : function(){
 		return this._super()+" with AC";
 	}
+
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
 var featureNavi = function (){
+
 	this.getDescription = function(){
 		return this._super()+" and navi";
 	}
+
 }
+
+///////////////////////////////////////////////////////////////////////////////
 
 var Mini 		= Car.extend(featureAirConditioner);
 var Smart 		= Car.extend(featureNavi);
 var Fiat 		= Car.extend(featureAirConditioner).extend(featureNavi);
+
+///////////////////////////////////////////////////////////////////////////////
 
 var mini 		= new Mini();	
 var smart 		= new Smart();	
@@ -188,26 +230,39 @@ So private methods and properties are kept private and separated of other instan
 ``` javascript
 var superClass = require("superClass");
 
+///////////////////////////////////////////////////////////////////////////////
+
 var Car = superClass(function(){
+
 	var brand;
+
 	this.construct = function(_brand){
-		brand=_brand
+		brand=_brand;
 	}
+
 	this.drive = function(){
 		return brand+"driving";
 	}
+
 });
 
+///////////////////////////////////////////////////////////////////////////////
+
 var featureCargoArea =  function(){
+
 	var cargo = [],
+
 		areaSize;
+
 	var checkCargo = function(){
 		return cargo.length <= areaSize ? true : false;
 	}
+
 	this.construct = function(_brand, _areaSize){
 		areaSize=_areaSize;
 		this.super(_brand);
 	}
+
 	this.addCargo = function(_cargo){
 		if( checkCargo() ) {
 			cargo.push(_cargo);
@@ -215,13 +270,18 @@ var featureCargoArea =  function(){
 		}
 		else return "Cargo area full";
 	}
+
 	this.getCargo = function(){
 		return cargo.join(", ");
 	}
+
 }
 
+///////////////////////////////////////////////////////////////////////////////
 
 var Pickup 			= Car.extend(featureCargoArea);
+
+///////////////////////////////////////////////////////////////////////////////
 
 var mini 			= new Car("Mini");	
 var smallPickup		= new Pickup("Ford", 1);	
@@ -260,79 +320,73 @@ var superClass = require("superClass");
 ///////////////////////////////////////////////////////////////////////////////
 
 var Car = superClass.abstract(function(){
-	////////////////////////////////////////
-	
-	var brand;
 
-	////////////////////////////////////////
+	var brand;
 
 	this.construct = function(_brand){
 		brand=_brand
 	}
 
-	////////////////////////////////////////
-
 	this.drive = Function;
-
-	////////////////////////////////////////
 
 	this.slowDown = function(){
 		return "slowing down";
 	}
-	
-	////////////////////////////////////////
+
 });
 
 ///////////////////////////////////////////////////////////////////////////////
 
 var Mini = Car.extend(function(){
-	////////////////////////////////////////
+
 	this.hasNavi = true;
-	////////////////////////////////////////
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 var Smart = Car.extend(function(){
-	////////////////////////////////////////
+
 	this.drive= function(){
 		return "driving"
 	}
-	////////////////////////////////////////
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 var Pickup = Car.extend.abstract(){
-	////////////////////////////////////////
+
 	this.hasCargoArea = true;
-	////////////////////////////////////////
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 var Ford = Pickup.extend(function(){	
+
 	this.drive=function(){
 		return "driving with 4x4";
 	}		
+
 });
 
 ///////////////////////////////////////////////////////////////////////////////
 
 var CustomBreaks = Car.extend.abstract(function(){
-	////////////////////////////////////////
+	
 	this.slowDown = Function;
-	////////////////////////////////////////
+	
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 var Fiat = Car.extend.abstract(CustomBreaks).extend(function(){
-	////////////////////////////////////////
+	
 	this.drive= function(){
 		return "driving";
 	}
-	////////////////////////////////////////
+	
 });
 
 ///////////////////////////////////////////////////////////////////////////////
