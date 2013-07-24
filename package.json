@@ -1,9 +1,9 @@
 {
-  "name": "superClass",
+  "name": "superclass",
   "version": "1.0.0",
   "author": "Philipp Adrian <hello@philippadrian.com>",
   "description": "A modular JavaScript inheritance pattern that supports private closures and abstract classes.",
-  "main":"./superClass.js",
+  "main":"superClass.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/greenish/js-superClass.git"
