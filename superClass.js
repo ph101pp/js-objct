@@ -27,13 +27,16 @@
 	"use strict";
 	var fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
 	var attachSuper = function(fn, _super) {
-		return function() {
+		var attach = function() {
 			var tmp = this._super;
 			this._super = _super;
 			var ret = fn.apply(this, arguments); 
 			this._super = tmp;
 			return ret;
 		}
+		//prevent infinite recursion on _super() call in super method.
+		if(typeof _super === "function" && _super != attach) _super=attachSuper(_super, undefined);
+		return attach;
 	}
 	var Inheritance = function(child, _super, _abstract){
 		var extending = [];
@@ -52,7 +55,7 @@
 									attachSuper(classes[i][key], Executable[key]):
 									classes[i][key];
 							else if(''+classes[i] !== ''+Executable) 
-								throw("Property names '_build', 'extend', '_instanceof' and '_abstract' are reserved on Class objects. (Sorry)");
+								throw("Property names '_build', 'extend', '_instanceof' and '_abstract' are reserved on superClass objects. (Sorry)");
 						}
 					}
 					extending.push(classes[i]);
