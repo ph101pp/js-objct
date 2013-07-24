@@ -413,5 +413,66 @@ ford.hasCargoArea;				// true
 6. instanceof
 ---------------
 
+The native instanceof operator works for the first child of the superClass. 
+This allows the extension of native objects or third party libraries. So the extended object will pass any validation tests in the library etc.
 
+For all other extended Classes, a public instanceof method is provided that works for all extended classes.
+
+If there already is a public instanceof method the superClass instancof method will be called _instanceof instead.
+
+
+
+``` javascript
+var superClass = require("superClass");
+
+///////////////////////////////////////////////////////////////////////////////
+
+var Car = function(){
+
+	this.drive = function(){
+		return "driving"
+	}
+
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+var featureNavi = function (){	
+
+	this.hasNavi=function(){
+		return true;
+	}
+
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+var featureAC = function (){	
+
+	this.hasAC=function(){
+		return true;
+	}
+
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+var MyCar 	= superClass.extend(Car).extend(featureNavi).extend(featureAC);
+
+///////////////////////////////////////////////////////////////////////////////
+
+var car = new MyCar();
+
+
+car instanceof Car 				// true
+car instanceof featureNavi		// false
+car instanceof featureAC 		// false
+car instanceof MyCar 			// false
+
+
+car.instanceof(Car) 			// true
+car.instanceof(featureNavi)		// true
+car.instanceof(featureAC) 		// true
+car.instanceof(MyCar) 			// true
+```
 
