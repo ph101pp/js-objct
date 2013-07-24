@@ -474,6 +474,7 @@ car.instanceof(MyCar) 			// true
 ---------------
 
 All "static" properties of the extending function objects are passed along and are available as "static" properties on the superClass object.
+Here also overwritten functions are accessible via the this._super keyword.
 
 ``` javascript
 var superClass = require("superClass");
@@ -506,6 +507,11 @@ FeatureNavi.useMap = function(){
 	return "using map";	
 }
 
+
+FeatureNavi.push= function() {
+	return this._super()+" and navi"
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 var MyCar 	= superClass.extend(Car).extend(FeatureNavi);
@@ -514,7 +520,7 @@ var MyCar 	= superClass.extend(Car).extend(FeatureNavi);
 
 var car = new MyCar();
 
-MyCar.push();		// "pushing"
+MyCar.push();		// "pushing car and navi"
 MyCar.useMap();		// "using map"
 
 car.push();			// undefined
