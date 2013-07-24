@@ -20,7 +20,14 @@
     "parent",
     "oop",
     "private",
-    "closure"
+    "closure",
+    "inheritance",
+    "object",
+    "oriented",
+    "javascript",
+    "js",
+    "method",
+    "function"
   ],
   "license": "MIT"
 }
