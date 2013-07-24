@@ -55,7 +55,7 @@ var standardCar = {						// Object
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var featureAirConditioner =  {			// Object with public property
+var FeatureAirConditioner =  {			// Object with public property
 
 	hasAC: true
 
@@ -63,7 +63,7 @@ var featureAirConditioner =  {			// Object with public property
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var featureNavi = function (){			// Function with public method
+var FeatureNavi = function (){			// Function with public method
 
 	this.hasNavi=function(){
 		return true;
@@ -73,11 +73,11 @@ var featureNavi = function (){			// Function with public method
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var Mini 		= superClass(standardCar, featureAirConditioner);
-var Smart 		= superClass(standardCar).extend(featureNavi);
-var Fiat 		= superClass(standardCar).extend(featureAirConditioner).extend(featureNavi);
+var Mini 		= superClass(standardCar, FeatureAirConditioner);
+var Smart 		= superClass(standardCar).extend(FeatureNavi);
+var Fiat 		= superClass(standardCar).extend(FeatureAirConditioner).extend(FeatureNavi);
 
-var CustomSmart = Smart.extend(featureAirConditioner);
+var CustomSmart = Smart.extend(FeatureAirConditioner);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -185,7 +185,7 @@ var Car = superClass(function(){
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var featureAirConditioner =  {
+var FeatureAirConditioner =  {
 
 	getDescription : function(){
 		return this._super()+" with AC";
@@ -195,7 +195,7 @@ var featureAirConditioner =  {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var featureNavi = function (){
+var FeatureNavi = function (){
 
 	this.getDescription = function(){
 		return this._super()+" and navi";
@@ -205,9 +205,9 @@ var featureNavi = function (){
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var Mini 		= Car.extend(featureAirConditioner);
-var Smart 		= Car.extend(featureNavi);
-var Fiat 		= Car.extend(featureAirConditioner).extend(featureNavi);
+var Mini 		= Car.extend(FeatureAirConditioner);
+var Smart 		= Car.extend(FeatureNavi);
+var Fiat 		= Car.extend(FeatureAirConditioner).extend(FeatureNavi);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -248,7 +248,7 @@ var Car = superClass(function(){
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var featureCargoArea =  function(){
+var FeatureCargoArea =  function(){
 
 	var cargo = [],
 
@@ -279,7 +279,7 @@ var featureCargoArea =  function(){
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var Pickup 			= Car.extend(featureCargoArea);
+var Pickup 			= Car.extend(FeatureCargoArea);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -437,7 +437,7 @@ var Car = function(){
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var featureNavi = function (){	
+var FeatureNavi = function (){	
 
 	this.hasNavi=function(){
 		return true;
@@ -447,7 +447,7 @@ var featureNavi = function (){
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var featureAC = function (){	
+var FeatureAC = function (){	
 
 	this.hasAC=function(){
 		return true;
@@ -457,7 +457,7 @@ var featureAC = function (){
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var MyCar 	= superClass.extend(Car).extend(featureNavi).extend(featureAC);
+var MyCar 	= superClass.extend(Car).extend(FeatureNavi).extend(FeatureAC);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -475,4 +475,103 @@ car.instanceof(featureNavi)		// true
 car.instanceof(featureAC) 		// true
 car.instanceof(MyCar) 			// true
 ```
+
+7. "static" function object properties
+---------------
+
+All "static" properties of the extending function objects are passed along and are available as "static" properties on the superClass object.
+
+``` javascript
+var superClass = require("superClass");
+
+///////////////////////////////////////////////////////////////////////////////
+
+var Car = function(){
+
+	this.drive = function(){
+		return "driving"
+	}
+
+}
+
+Car.push= function() {
+	return "pushing car"
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+var FeatureNavi = function (){	
+
+	this.hasNavi=function(){
+		return true;
+	}
+
+}
+
+FeatureNavi.useMap = function(){
+	return "using map";	
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+var MyCar 	= superClass.extend(Car).extend(FeatureNavi);
+
+///////////////////////////////////////////////////////////////////////////////
+
+var car = new MyCar();
+
+MyCar.push();		// "pushing"
+MyCar.useMap();		// "using map"
+
+car.push();			// undefined
+car.useMap();		// undefined
+```
+
+7. Proper display in inspector
+---------------
+
+``` javascript
+var superClass = require("superClass");
+
+///////////////////////////////////////////////////////////////////////////////
+
+var Car = function(){
+
+	this.drive = function(){
+		return "driving"
+	}
+
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+var Truck = function (){	
+
+	this.has4x4=function(){
+		return true;
+	}
+
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+var Pickup = function (){	
+
+	this.hasCargoArea=function(){
+		return true;
+	}
+
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+var PickupTruck 	= superClass.extend(Car).extend(Truck).extend(Pickup);
+
+///////////////////////////////////////////////////////////////////////////////
+
+var myTruck = new PickupTruck();
+
+console.log(myTruck);
+```
+
 
