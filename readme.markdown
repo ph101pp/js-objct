@@ -31,7 +31,18 @@ Get the parentclass from GitHub or via npm by running in your terminal:
 $ npm install parentclass
 ```
 
-You're good to go!
+Include it into your node project by calling
+``` javascript
+var parentclass = require("parentclass");
+```
+
+or into your web project by adding
+ 
+``` html
+<script src="path/to/the/file/parentclass.js"></script>
+```
+
+And you're good to go!
 
 	
 2. Extend Public Methods and Properties
