@@ -8,9 +8,9 @@ __Keyfeatures:__
 
 * Functions and Objects can extend and be extended.
 * Easy definable constructor function
+* Overwritten methods can be accessed with the _super keyword.
 * Objects can be modular assembled for each new class.
 * Private, privileged and public methods. Closures are preserved and kept separated for each instance.
-* Overwritten methods can be accessed with the _super keyword.
 * Possibility to define abstract classes and methods
 * "Static" object methods are preserved and passed along.
 
@@ -19,9 +19,6 @@ __Keyfeatures:__
 I developed the superClass for my bachelor thesis project, where I used a node server and browserify to serve the JavaScript.
 
 Because this class turned out to be pretty valuable I decided to create this spin off project.
-
-Here is what you can do, using the old car example:
-
 
 #Documentation
 
@@ -45,8 +42,7 @@ var superClass = require("superClass");
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var standardCar = {						// Object
-
+var standardCar = {					
 	drive : function(){
 		return "driving";
 	}
@@ -55,15 +51,13 @@ var standardCar = {						// Object
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var FeatureAirConditioner =  {			// Object with public property
+var FeatureAirConditioner =  function(){};
 
-	hasAC: true
-
-}
+FeatureAirConditioner.prototype.hasAC = true;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var FeatureNavi = function (){			// Function with public method
+var FeatureNavi = function (){	
 
 	this.hasNavi=function(){
 		return true;
@@ -527,7 +521,7 @@ car.push();			// undefined
 car.useMap();		// undefined
 ```
 
-7. Proper display in inspector
+7. Nice display in inspector
 ---------------
 
 ``` javascript
