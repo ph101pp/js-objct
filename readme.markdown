@@ -1,4 +1,4 @@
-#JS superClass
+#JS parentclass
 
 A JavaScript modular inheritance class that works nicely with browserify, CommonJS or just vanilla JavaScript.
 
@@ -16,7 +16,7 @@ __Keyfeatures:__
 
 ----------------
 
-I developed the superClass for my bachelor thesis project, where I used a node server and browserify to serve the JavaScript.
+I developed the parentclass for my bachelor thesis project, where I used a node server and browserify to serve the JavaScript.
 
 Because this class turned out to be pretty valuable I decided to create this spin off project.
 
@@ -25,10 +25,10 @@ Because this class turned out to be pretty valuable I decided to create this spi
 1.	General
 ----------------
 	
-Get the superClass from GitHub or via npm by running in your terminal:
+Get the parentclass from GitHub or via npm by running in your terminal:
 
 ```
-$ npm install superClass
+$ npm install parentclass
 ```
 
 You're good to go!
@@ -38,7 +38,7 @@ You're good to go!
 ----------------
 
 ``` javascript
-var superClass = require("superClass");
+var parentclass = require("parentclass");
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -67,9 +67,9 @@ var FeatureNavi = function (){
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var Mini 		= superClass(standardCar, FeatureAirConditioner);
-var Smart 		= superClass(standardCar).extend(FeatureNavi);
-var Fiat 		= superClass(standardCar).extend(FeatureAirConditioner).extend(FeatureNavi);
+var Mini 		= parentclass(standardCar, FeatureAirConditioner);
+var Smart 		= parentclass(standardCar).extend(FeatureNavi);
+var Fiat 		= parentclass(standardCar).extend(FeatureAirConditioner).extend(FeatureNavi);
 
 var CustomSmart = Smart.extend(FeatureAirConditioner);
 
@@ -114,11 +114,11 @@ If the return value of the constructor is a function or an object, this will be 
 
 
 ``` javascript
-var superClass = require("superClass");
+var parentclass = require("parentclass");
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var Car = superClass({
+var Car = parentclass({
 
 	brand:null,
 
@@ -165,11 +165,11 @@ brokenFiat.drive();								// undefined
 Overwritten methods can be accessed by the this._super keyword.
 
 ``` javascript
-var superClass = require("superClass");
+var parentclass = require("parentclass");
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var Car = superClass(function(){
+var Car = parentclass(function(){
 
 	this.getDescription = function(){
 		return "Standard car";
@@ -222,11 +222,11 @@ On Initiation each extended function is initiated seperately.
 So private methods and properties are kept private and separated of other instances.
 
 ``` javascript
-var superClass = require("superClass");
+var parentclass = require("parentclass");
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var Car = superClass(function(){
+var Car = parentclass(function(){
 
 	var brand;
 
@@ -309,11 +309,11 @@ In abstract classes, abstract methods can be defined by defining the method as t
 Existing Methods can't be overwritten by abstract methods.
 
 ``` javascript
-var superClass = require("superClass");
+var parentclass = require("parentclass");
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var Car = superClass.abstract(function(){
+var Car = parentclass.abstract(function(){
 
 	var brand;
 
@@ -407,17 +407,17 @@ ford.hasCargoArea;				// true
 6. instanceof
 ---------------
 
-The native instanceof operator works for the first child of the superClass. 
+The native instanceof operator works for the first child of the parentclass. 
 This allows the extension of native objects or third party libraries. So the extended object will pass any validation tests in the library etc.
 
 For all other extended Classes, a public instanceof method is provided that works for all extended classes.
 
-If there already is a public instanceof method the superClass instancof method will be called _instanceof instead.
+If there already is a public instanceof method the parentclass instancof method will be called _instanceof instead.
 
 
 
 ``` javascript
-var superClass = require("superClass");
+var parentclass = require("parentclass");
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -451,7 +451,7 @@ var FeatureAC = function (){
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var MyCar 	= superClass.extend(Car).extend(FeatureNavi).extend(FeatureAC);
+var MyCar 	= parentclass.extend(Car).extend(FeatureNavi).extend(FeatureAC);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -473,11 +473,11 @@ car.instanceof(MyCar) 			// true
 7. "static" function object properties
 ---------------
 
-All "static" properties of the extending function objects are passed along and are available as "static" properties on the superClass object.
+All "static" properties of the extending function objects are passed along and are available as "static" properties on the parentclass object.
 Here also overwritten functions are accessible via the this._super keyword.
 
 ``` javascript
-var superClass = require("superClass");
+var parentclass = require("parentclass");
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -514,7 +514,7 @@ FeatureNavi.push= function() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var MyCar 	= superClass.extend(Car).extend(FeatureNavi);
+var MyCar 	= parentclass.extend(Car).extend(FeatureNavi);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -531,7 +531,7 @@ car.useMap();		// undefined
 ---------------
 
 ``` javascript
-var superClass = require("superClass");
+var parentclass = require("parentclass");
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -565,7 +565,7 @@ var Pickup = function (){
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var PickupTruck 	= superClass.extend(Car).extend(Truck).extend(Pickup);
+var PickupTruck 	= parentclass.extend(Car).extend(Truck).extend(Pickup);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -573,5 +573,5 @@ var myTruck = new PickupTruck();
 
 console.log(myTruck);
 ```
-![Console Screenshot](http://greenish.github.io/js-superClass/superClassConsole.png)
+![Console Screenshot](http://greenish.github.io/js-parentclass/parentclassConsole.png)
 
