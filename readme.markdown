@@ -573,5 +573,5 @@ var myTruck = new PickupTruck();
 
 console.log(myTruck);
 ```
-
+![Console Screenshot](http://greenish.github.io/js-superClass/superClassConsole.png)
 
