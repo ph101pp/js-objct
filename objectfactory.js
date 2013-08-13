@@ -1,5 +1,5 @@
 /*! 
- * superClass - v1.0.0 (https://github.com/greenish/js-superClass)
+ * objectFactory - v1.0.0 (https://github.com/greenish/js-objectFactory)
  * 
  * Copyright (c) 2013 Philipp Adrian (www.philippadrian.com)
  *
@@ -25,7 +25,8 @@
  */
 (function(undefined){
 	"use strict";
-	var fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
+	var superTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
+	var abstractTest = /xyz/.test(function(){xyz;}) ? /\bFunction\b/ : /.*/;
 	var attachSuper = function(fn, _super) {
 		var attach = function() {
 			var tmp = this._super;
@@ -34,8 +35,9 @@
 			this._super = tmp;
 			return ret;
 		}
-		//prevent infinite recursion on _super() call in super method.
-		if(typeof _super === "function" && _super != attach) _super=attachSuper(_super, undefined);
+		//prevent infinite recursion on _super() call in "last" super method.
+		if(typeof _super === "function" && _super != attach) 
+			_super=attachSuper(_super, undefined);
 		return attach;
 	}
 	var Inheritance = function(child, _super, _abstract){
@@ -55,7 +57,7 @@
 									attachSuper(classes[i][key], Executable[key]):
 									classes[i][key];
 							else if(''+classes[i] !== ''+Executable) 
-								throw("Property names '_build', 'extend', '_instanceof' and '_abstract' are reserved on superClass objects. (Sorry)");
+								throw("Property names '_build', 'extend', '_instanceof' and '_abstract' are reserved and can't be set as static properties. (Sorry)");
 						}
 					}
 					extending.push(classes[i]);
@@ -64,12 +66,12 @@
 			return Executable;
 		}
 		var Executable = function(){
-			if(!(this instanceof Executable)) 
-				throw("Classes need to be initiated with the new operator.");
+ 			Array.prototype.unshift.call(arguments, null);
+			if(!(this instanceof Executable))
+				return new (Function.prototype.bind.apply(Executable, arguments));
 			if(abstract) 
 				throw("Abstract class may not be constructed.");
 
-			Array.prototype.unshift.call(arguments, null);
 			var instance = Executable._build(undefined, arguments, abstractMethods);
 
 			for(var i =0; i<abstractMethods.length; i++) 
@@ -134,7 +136,7 @@
 								throw("Can't override '"+key+"' with abstract method.");
 							Class[key] = proto[key];
 						}
-						else Class[key] = proto[key] !== Class[key]  && typeof proto[key] === "function" && typeof Class[key] === "function" && fnTest.test(proto[key]) ?
+						else Class[key] = proto[key] !== Class[key]  && typeof proto[key] === "function" && typeof Class[key] === "function" && superTest.test(proto[key]) ?
 							attachSuper(proto[key], Class[key]):
 							proto[key];
 					}
@@ -146,7 +148,7 @@
 						extending[i].prototype = proto;
 						extending[i].prototype.constructor = extending[i];
 
-						if(fnTest.test(extending[i]) || abstract) {
+						if(superTest.test(extending[i]) || (abstract && abstractTest.test(extending[i]))) {
 							keys = Object.getOwnPropertyNames(instance);
 							for(var i=0; i<keys.length; i++){
 								if(abstract && instance[keys[i]] === Function) {
@@ -155,7 +157,7 @@
 										throw("Can't override '"+keys[i]+"' with abstract method.");
 									continue;
 								}
-								else if(Class[keys[i]] !== instance[keys[i]]  && typeof instance[keys[i]] === "function" && typeof Class[keys[i]] === "function" && fnTest.test(instance[keys[i]])) 
+								else if(Class[keys[i]] !== instance[keys[i]]  && typeof instance[keys[i]] === "function" && typeof Class[keys[i]] === "function" && superTest.test(instance[keys[i]])) 
 									instance[keys[i]] = attachSuper(instance[keys[i]], Class[keys[i]]);
 							}
 						}
@@ -176,16 +178,16 @@
 		}	
 		return extend(child, _super);
 	}
-	var superClass = function(parent, child){
+	var objectFactory = function(parent, child){
 		parent = new Inheritance(parent);
 		return child ?
 			parent.extend(child):
 			parent;
 	}
-	superClass.abstract  = function(child){
+	objectFactory.abstract  = function(child){
 		return new Inheritance(child, undefined, true);
 	}	
-	superClass.extend = superClass;
-	if(typeof module === "object") module.exports = superClass;
-	else window.superClass = superClass;
+	objectFactory.extend = objectFactory;
+	if(typeof module === "object") module.exports = objectFactory;
+	else window.objectFactory = objectFactory;
 })();

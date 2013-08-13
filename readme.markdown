@@ -1,4 +1,4 @@
-#JS parentclass
+#JS objectfactory
 
 A JavaScript modular inheritance class that works nicely with browserify, CommonJS or just vanilla JavaScript.
 
@@ -16,7 +16,7 @@ __Keyfeatures:__
 
 ----------------
 
-I developed the parentclass for my bachelor thesis project, where I used a node server and browserify to serve the JavaScript.
+I developed the objectfactory for my bachelor thesis project [jnstrument](http://jnstrument.com), where I used a node server and browserify to serve the JavaScript.
 
 Because this class turned out to be pretty valuable I decided to create this spin off project.
 
@@ -25,21 +25,21 @@ Because this class turned out to be pretty valuable I decided to create this spi
 1.	General
 ----------------
 	
-Get the parentclass from GitHub or via npm by running in your terminal:
+Get the objectfactory from GitHub or via npm by running in your terminal:
 
 ```
-$ npm install parentclass
+$ npm install objectfactory
 ```
 
 Include it into your node project by calling
 ``` javascript
-var parentclass = require("parentclass");
+var objectfactory = require("objectfactory");
 ```
 
 or into your web project by adding
  
 ``` html
-<script src="path/to/the/file/parentclass.js"></script>
+<script src="path/to/the/file/objectfactory.js"></script>
 ```
 
 And you're good to go!
@@ -49,7 +49,7 @@ And you're good to go!
 ----------------
 
 ``` javascript
-var parentclass = require("parentclass");
+var objectfactory = require("objectfactory");
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -78,9 +78,9 @@ var FeatureNavi = function (){
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var Mini 		= parentclass(standardCar, FeatureAirConditioner);
-var Smart 		= parentclass(standardCar).extend(FeatureNavi);
-var Fiat 		= parentclass(standardCar).extend(FeatureAirConditioner).extend(FeatureNavi);
+var Mini 		= objectfactory(standardCar, FeatureAirConditioner);
+var Smart 		= objectfactory(standardCar).extend(FeatureNavi);
+var Fiat 		= objectfactory(standardCar).extend(FeatureAirConditioner).extend(FeatureNavi);
 
 var CustomSmart = Smart.extend(FeatureAirConditioner);
 
@@ -125,11 +125,11 @@ If the return value of the constructor is a function or an object, this will be 
 
 
 ``` javascript
-var parentclass = require("parentclass");
+var objectfactory = require("objectfactory");
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var Car = parentclass({
+var Car = objectfactory({
 
 	brand:null,
 
@@ -173,14 +173,14 @@ brokenFiat.drive();								// undefined
 3. _super Keyword
 ----------------
 
-Overwritten methods can be accessed by the this._super keyword.
+Overwritten methods can be accessed by this._super().
 
 ``` javascript
-var parentclass = require("parentclass");
+var objectfactory = require("objectfactory");
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var Car = parentclass(function(){
+var Car = objectfactory(function(){
 
 	this.getDescription = function(){
 		return "Standard car";
@@ -233,11 +233,11 @@ On Initiation each extended function is initiated seperately.
 So private methods and properties are kept private and separated of other instances.
 
 ``` javascript
-var parentclass = require("parentclass");
+var objectfactory = require("objectfactory");
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var Car = parentclass(function(){
+var Car = objectfactory(function(){
 
 	var brand;
 
@@ -320,11 +320,11 @@ In abstract classes, abstract methods can be defined by defining the method as t
 Existing Methods can't be overwritten by abstract methods.
 
 ``` javascript
-var parentclass = require("parentclass");
+var objectfactory = require("objectfactory");
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var Car = parentclass.abstract(function(){
+var Car = objectfactory.abstract(function(){
 
 	var brand;
 
@@ -418,17 +418,17 @@ ford.hasCargoArea;				// true
 6. instanceof
 ---------------
 
-The native instanceof operator works for the first child of the parentclass. 
+The native instanceof operator works for the first child of the objectfactory. 
 This allows the extension of native objects or third party libraries. So the extended object will pass any validation tests in the library etc.
 
 For all other extended Classes, a public instanceof method is provided that works for all extended classes.
 
-If there already is a public instanceof method the parentclass instancof method will be called _instanceof instead.
+If there already is a public instanceof method the objectfactory instancof method will be called _instanceof instead.
 
 
 
 ``` javascript
-var parentclass = require("parentclass");
+var objectfactory = require("objectfactory");
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -462,7 +462,7 @@ var FeatureAC = function (){
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var MyCar 	= parentclass.extend(Car).extend(FeatureNavi).extend(FeatureAC);
+var MyCar 	= objectfactory.extend(Car).extend(FeatureNavi).extend(FeatureAC);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -484,11 +484,11 @@ car.instanceof(MyCar) 			// true
 7. "static" function object properties
 ---------------
 
-All "static" properties of the extending function objects are passed along and are available as "static" properties on the parentclass object.
+All "static" properties of the extending function objects are passed along and are available as "static" properties on the objectfactory object.
 Here also overwritten functions are accessible via the this._super keyword.
 
 ``` javascript
-var parentclass = require("parentclass");
+var objectfactory = require("objectfactory");
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -525,7 +525,7 @@ FeatureNavi.push= function() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var MyCar 	= parentclass.extend(Car).extend(FeatureNavi);
+var MyCar 	= objectfactory.extend(Car).extend(FeatureNavi);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -542,7 +542,7 @@ car.useMap();		// undefined
 ---------------
 
 ``` javascript
-var parentclass = require("parentclass");
+var objectfactory = require("objectfactory");
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -576,7 +576,7 @@ var Pickup = function (){
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var PickupTruck 	= parentclass.extend(Car).extend(Truck).extend(Pickup);
+var PickupTruck 	= objectfactory.extend(Car).extend(Truck).extend(Pickup);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -584,5 +584,5 @@ var myTruck = new PickupTruck();
 
 console.log(myTruck);
 ```
-![Console Screenshot](http://greenish.github.io/js-parentclass/parentclassConsole.png)
+![Console Screenshot](http://greenish.github.io/js-objectfactory/objectfactoryConsole.png)
 
