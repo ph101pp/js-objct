@@ -1,5 +1,5 @@
 /*! 
- * objectFactory - v1.0.0 (https://github.com/greenish/js-objectFactory)
+ * objectfactory - v1.0.0 (https://github.com/greenish/js-objectfactory)
  * 
  * Copyright (c) 2013 Philipp Adrian (www.philippadrian.com)
  *
@@ -40,53 +40,56 @@
 			_super=attachSuper(_super, undefined);
 		return attach;
 	}
-	var Inheritance = function(child, _super, _abstract){
+	var Inheritance = function(children, _abstract){
 		var extending = [];
 		var abstract = _abstract || false;
 		var abstractMethods = [];
-		var extend = function(child, _super) {
-			var key;
-			var classes = [_super, child];	
-			if(child._abstract) abstract = child._abstract();
-			for(var i=0; i<classes.length; i++) {
-				if(typeof classes[i] === "object" || typeof classes[i] === "function"){
-					if(typeof classes[i] === "function") {
-						for(key in classes[i]) {
-							if(["_build", "extend", "_abstract", "_instanceof"].indexOf(key) < 0) 
-								Executable[key]= typeof Executable[key] === "function" ?
-									attachSuper(classes[i][key], Executable[key]):
-									classes[i][key];
-							else if(''+classes[i] !== ''+Executable) 
-								throw("Property names '_build', 'extend', '_instanceof' and '_abstract' are reserved and can't be set as static properties. (Sorry)");
-						}
+		var result = undefined;
+		var extend = function(child) {
+			var key,type;
+			if(!_abstract) abstract = typeof child._abstract === "function" ? child._abstract():false;
+			type=typeof child;
+			if(type === "object" || type === "function"){
+				if(type === "function") {
+					for(key in child) {
+						if(["_build", "extend", "_abstract", "_instanceof"].indexOf(key) < 0) 
+							Executable[key]= typeof Executable[key] === "function" ?
+								attachSuper(child[key], Executable[key]):
+								child[key];
+						else if(''+child !== ''+Executable) 
+							throw("Property names '_build', 'extend', '_instanceof' and '_abstract' are reserved and can't be set as static properties. (Sorry)");
 					}
-					extending.push(classes[i]);
 				}
+				extending.push(child);
 			}
-			return Executable;
 		}
 		var Executable = function(){
  			Array.prototype.unshift.call(arguments, null);
+ 			// Create instance if not already done.
 			if(!(this instanceof Executable))
 				return new (Function.prototype.bind.apply(Executable, arguments));
 			if(abstract) 
 				throw("Abstract class may not be constructed.");
 
+			// Create new Instance
 			var instance = Executable._build(undefined, arguments, abstractMethods);
 
+			// Check if all abstract Methods are implemented
 			for(var i =0; i<abstractMethods.length; i++) 
 				if(instance[abstractMethods[i]] === Function) 
 					throw("Abstract method '"+abstractMethods[i]+"' needs to be defined.");
 
-			// Add or update substitution for native instanceof operator
+			// Add substitution for native instanceof operator
 			if(typeof instance.instanceof === "undefined" || ""+instance.instanceof === ""+Executable._instanceof) 
 				instance.instanceof = Executable._instanceof;
 			else 
 				instance._instanceof = Executable._instanceof;
 
+			// Call consruct if available
 			Array.prototype.shift.call(arguments);
 			if(instance.construct) 
 				var construct = instance.construct.apply(instance, arguments);
+			// return instance or if construct() returned function or object, return that. (standart instanication behavior in JS)
 			return typeof construct === "object" || typeof construct === "function" ?
 				construct : instance;
 		}
@@ -99,19 +102,20 @@
 					if(typeof extending[i]._instanceof === "function" && extending[i]._instanceof(fn)) 
 						return true;
 					else if(extending[i] === fn) 
-						return true
+						return true;
 				}
 				return false;
 			};
 			for(var i=0; i<extending.length; i++) {
 				isFunction = typeof extending[i] === "function";
-				if(isFunction && typeof extending[i]._build === "function") 
+				if(isFunction && typeof extending[i]._build === "function") {
 					Class=extending[i]._build(Class, args, abstractMethods);
+				}
 				else {
 					if(typeof Class === "undefined") {
 						Class = isFunction ?
 							new (Function.prototype.bind.apply(extending[i], args)):
-							extending[i];
+							Object.create(extending[i]);
 						if(abstract)
 							for(var key in Class)
 								if(Class[key] === Function)
@@ -150,15 +154,16 @@
 
 						if(superTest.test(extending[i]) || (abstract && abstractTest.test(extending[i]))) {
 							keys = Object.getOwnPropertyNames(instance);
-							for(var i=0; i<keys.length; i++){
-								if(abstract && instance[keys[i]] === Function) {
-									abstractMethods.push(keys[i]);
-									if(Class[keys[i]] && Class[keys[i]] !== Function) 
-										throw("Can't override '"+keys[i]+"' with abstract method.");
+							for(var k=0; k<keys.length; k++){
+								if(abstract && instance[keys[k]] === Function) {
+									abstractMethods.push(keys[k]);
+									if(Class[keys[k]] && Class[keys[k]] !== Function) 
+										throw("Can't override '"+keys[k]+"' with abstract method.");
 									continue;
 								}
-								else if(Class[keys[i]] !== instance[keys[i]]  && typeof instance[keys[i]] === "function" && typeof Class[keys[i]] === "function" && superTest.test(instance[keys[i]])) 
-									instance[keys[i]] = attachSuper(instance[keys[i]], Class[keys[i]]);
+								// test if _super has to be attached
+								else if(Class[keys[k]] !== instance[keys[k]]  && typeof instance[keys[k]] === "function" && typeof Class[keys[k]] === "function" && superTest.test(instance[keys[k]])) 
+									instance[keys[k]] = attachSuper(instance[keys[k]], Class[keys[k]]);
 							}
 						}
 						Class = instance;
@@ -170,24 +175,30 @@
 		Executable._abstract = function(){
 			return abstract
 		}
-		Executable.extend = function(child){
-			return new Inheritance(child, Executable);
+		Executable.extend = function(){
+			Array.prototype.unshift.call(arguments, Executable);
+			return new Inheritance(arguments);
 		}		
-		Executable.extend.abstract = function(child){
-			return new Inheritance(child, Executable, true);
+		Executable.extend.abstract = function(){
+			Array.prototype.unshift.call(arguments, Executable);
+			return new Inheritance(arguments, true);
 		}	
-		return extend(child, _super);
+  		
+  		for(var key in children)
+  			if(typeof children[key] === "object" || typeof children[key] === "function")
+				extend(children[key]);
+			else 
+				throw("Unexpected '"+typeof children[key]+"'! Only 'functions' and 'objects' can be used with the objectfactory.");
+
+		return Executable;
 	}
-	var objectFactory = function(parent, child){
-		parent = new Inheritance(parent);
-		return child ?
-			parent.extend(child):
-			parent;
+	var objectfactory = function(){
+		return new Inheritance(arguments);
 	}
-	objectFactory.abstract  = function(child){
-		return new Inheritance(child, undefined, true);
+	objectfactory.abstract  = function(){
+		return new Inheritance(arguments,true);
 	}	
-	objectFactory.extend = objectFactory;
-	if(typeof module === "object") module.exports = objectFactory;
-	else window.objectFactory = objectFactory;
+	objectfactory.extend = objectfactory;
+	if(typeof module === "object") module.exports = objectfactory;
+	else window.objectfactory = objectfactory;
 })();
