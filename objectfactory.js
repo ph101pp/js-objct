@@ -51,7 +51,72 @@
 		}
 		return f;	
 	}
-	
+
+	var build = function(Class, extending, args, abstractMethods){
+		var isFunction, proto, instance, keys, child;
+
+		for(var i=0; i<extending.length; i++) {
+			child = extending[i];
+			isFunction = typeof child.obj === "function";
+			if(isFunction && extending[i].strObj === strExecutable) {
+				Class=child.obj.call(Factory, Class, args, abstractMethods);
+			}
+			else {
+				if(typeof Class === "undefined") {
+					Class = isFunction ?
+						instantiate(child.obj, args):
+						Object.create(child.obj); // Copy object
+					if(child.abstract)
+						for(var key in Class)
+							if(Class[key] === Function)
+								abstractMethods.push(key); 
+					continue;
+				}
+				if(!isFunction) Class = instantiate(Class);
+
+				proto = isFunction ?
+					child.obj.prototype:
+					child.obj;
+
+				for(var key in proto) {
+				
+					if(child.abstract && proto[key] === Function && typeof Class[keys[k]] !== "function") {
+						abstractMethods.push(key);
+						Class[key] = proto[key];
+					}
+					else if(child.super && proto[key] !== Class[key]  && typeof proto[key] === "function" && typeof Class[key] === "function" && superTest.test(proto[key]))
+						Class[key] = attachSuper(proto[key], Class[key]);
+					else
+						Class[key] = proto[key];
+				}
+					
+				
+				if(isFunction) {
+					child.obj.prototype = Class;
+					child.obj.prototype.constructor = child.obj;
+					instance = instantiate(child.obj, args);
+					child.obj.prototype = proto;
+					child.obj.prototype.constructor = child.obj;
+
+					if((child.super && superTest.test(child.obj)) || (child.abstract && abstractTest.test(child.obj))) {
+						keys = Object.getOwnPropertyNames(instance);
+						for(var k=0; k<keys.length; k++){
+							// test if abstract method
+							if(child.abstract && instance[keys[k]] === Function && typeof Class[keys[k]] !== "function") {
+								abstractMethods.push(keys[k]);
+							}
+							// test if _super has to be attached
+							else if(child.super && Class[keys[k]] !== instance[keys[k]]  && typeof instance[keys[k]] === "function" && typeof Class[keys[k]] === "function" && superTest.test(instance[keys[k]])) 
+								instance[keys[k]] = attachSuper(instance[keys[k]], Class[keys[k]]);
+						}
+					}
+					Class = instance;
+				}
+			}
+		}
+		return Class;
+	}
+			
 	var Factory = function(children){
 		var extending = [];
 		var abstractMethods = [];
@@ -73,70 +138,7 @@
 			}
 			extending.push(child);
 		}
-		var build = function(Class, extending, args, abstractMethods){
-			var isFunction, proto, instance, keys, child;
 
-			for(var i=0; i<extending.length; i++) {
-				child = extending[i];
-				isFunction = typeof child.obj === "function";
-				if(isFunction && extending[i].strObj === strExecutable) {
-					Class=child.obj.call(Factory, Class, args, abstractMethods);
-				}
-				else {
-					if(typeof Class === "undefined") {
-						Class = isFunction ?
-							instantiate(child.obj, args):
-							Object.create(child.obj); // Copy object
-						if(child.abstract)
-							for(var key in Class)
-								if(Class[key] === Function)
-									abstractMethods.push(key); 
-						continue;
-					}
-					if(!isFunction) Class = instantiate(Class);
-
-					proto = isFunction ?
-						child.obj.prototype:
-						child.obj;
-
-					for(var key in proto) {
-					
-						if(child.abstract && proto[key] === Function && typeof Class[keys[k]] !== "function") {
-							abstractMethods.push(key);
-							Class[key] = proto[key];
-						}
-						else if(child.super && proto[key] !== Class[key]  && typeof proto[key] === "function" && typeof Class[key] === "function" && superTest.test(proto[key]))
-							Class[key] = attachSuper(proto[key], Class[key]);
-						else
-							Class[key] = proto[key];
-					}
-						
-					
-					if(isFunction) {
-						child.obj.prototype = Class;
-						child.obj.prototype.constructor = child.obj;
-						instance = instantiate(child.obj, args);
-						child.obj.prototype = proto;
-						child.obj.prototype.constructor = child.obj;
-
-						if((child.super && superTest.test(child.obj)) || (child.abstract && abstractTest.test(child.obj))) {
-							keys = Object.getOwnPropertyNames(instance);
-							for(var k=0; k<keys.length; k++){
-								// test if abstract method
-								if(child.abstract && instance[keys[k]] === Function && typeof Class[keys[k]] !== "function") {
-									abstractMethods.push(keys[k]);
-								}
-								// test if _super has to be attached
-								else if(child.super && Class[keys[k]] !== instance[keys[k]]  && typeof instance[keys[k]] === "function" && typeof Class[keys[k]] === "function" && superTest.test(instance[keys[k]])) 
-									instance[keys[k]] = attachSuper(instance[keys[k]], Class[keys[k]]);
-							}
-						}
-						Class = instance;
-					}
-				}
-			}
-			return Class;
-		}
 		var Executable = function(Class, args, absMethods){
 			// Define _instanceof function for every Executable that gets build.
 			Executable._instanceof = function(fn){
