@@ -29,7 +29,7 @@
 	var abstractTest = /xyz/.test(function(){xyz;}) ? /\bFunction\b/ : /.*/;
 	var factory = function(){};
 	var strExecutable;
-	var reserved = ["extend", "_abstract", "_instanceof"]; // Reserved as "static" methods
+	var reserved = ["_abstract", "_instanceof"]; // Reserved as "static" methods
 	var attachSuper = function(fn, _super) {
 		var attach = function() {
 			var tmp = this._super;
@@ -192,15 +192,7 @@
 		Executable._abstract = function(){
 			return abstract
 		}
-		Executable.extend = function(){
-			Array.prototype.unshift.call(arguments, Executable);
-			return new Inheritance(arguments);
-		}		
-		Executable.extend.abstract = function(){
-			Array.prototype.unshift.call(arguments, Executable);
-			return new Inheritance(arguments, true);
-		}	
-  		
+
   		for(var key in children)
   			if(typeof children[key] === "object" || typeof children[key] === "function")
 				extend(children[key]);
@@ -215,7 +207,7 @@
 	objectfactory.abstract  = function(){
 		return new Inheritance(arguments,true);
 	}	
-	objectfactory.extend = objectfactory;
+
 	if(typeof module === "object") module.exports = objectfactory;
 	else window.objectfactory = objectfactory;
 })();
