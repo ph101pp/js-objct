@@ -42,18 +42,21 @@
 			_super=attachSuper(_super, undefined);
 		return attach;
 	}
-	var instantiate = typeof Function.prototype.bind === "function" ? 
-			function(fn, args) {
-				Array.prototype.unshift.call(args, null);
-		 		return new (Function.prototype.bind.apply(fn, args));
-			}:
-			function(fn, args){
-			    empty.prototype = fn.prototype;
-			    empty.prototype.constructor = fn;
-			    var f = new empty();
-			    fn.apply(f, args);
-			    return f;	
-			}
+	var instantiate = function(fn, args){
+		var f;
+		if(typeof fn === "function") {
+			empty.prototype = fn.prototype;
+			empty.prototype.constructor = fn;
+			f = new empty();
+			fn.apply(f, args);
+		}
+		if(typeof fn === "object") {
+			empty.prototype = fn;
+			empty.prototype.constructor = empty;
+			f = new empty();
+		}
+		return f;	
+	}
 	var Inheritance = function(children, _abstract){
 		var extending = [];
 		var abstract = _abstract || false;
@@ -134,18 +137,14 @@
 									abstractMethods.push(key); 
 						continue;
 					}
-					if(!isFunction) {
-						proto = Class;
-						Class = empty;
-						Class.prototype=proto;
-						Class.prototype.constructor = Class;
-						Class = new Class;
-					}
+					if(!isFunction) Class = instantiate(Class);
+					
 					proto = isFunction ?
 						extending[i].prototype:
 						extending[i];
 
 					for(var key in proto) {
+						
 						if(abstract && proto[key] === Function) {
 							abstractMethods.push(key);
 							if(Class[key] && Class[key] !== Function) 
