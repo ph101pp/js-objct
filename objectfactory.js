@@ -28,6 +28,7 @@
 	var superTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
 	var abstractTest = /xyz/.test(function(){xyz;}) ? /\bFunction\b/ : /.*/;
 	var empty = function(){};
+	var reserved = ["_build", "extend", "_abstract", "_instanceof"]; // Reserved as "static" methods
 	var attachSuper = function(fn, _super) {
 		var attach = function() {
 			var tmp = this._super;
@@ -41,7 +42,7 @@
 			_super=attachSuper(_super, undefined);
 		return attach;
 	}
-	var instanciate = typeof Function.prototype.bind === "function" ? 
+	var instantiate = typeof Function.prototype.bind === "function" ? 
 			function(fn, args) {
 				Array.prototype.unshift.call(args, null);
 		 		return new (Function.prototype.bind.apply(fn, args));
@@ -65,7 +66,7 @@
 			if(type === "object" || type === "function"){
 				if(type === "function") {
 					for(key in child) {
-						if(["_build", "extend", "_abstract", "_instanceof"].indexOf(key) < 0) 
+						if(reserved.indexOf(key) < 0) 
 							Executable[key]= typeof Executable[key] === "function" ?
 								attachSuper(child[key], Executable[key]):
 								child[key];
@@ -79,7 +80,7 @@
 		var Executable = function(){
  			// Create instance if not already done.
 			if(!(this instanceof Executable))
-				return instanciate(Executable, arguments);
+				return instantiate(Executable, arguments);
 			if(abstract) 
 				throw("Abstract class may not be constructed.");
  	
@@ -125,7 +126,7 @@
 				else {
 					if(typeof Class === "undefined") {
 						Class = isFunction ?
-							instanciate(extending[i], args):
+							instantiate(extending[i], args):
 							Object.create(extending[i]); // Copy object
 						if(abstract)
 							for(var key in Class)
@@ -137,8 +138,8 @@
 						proto = Class;
 						Class = empty;
 						Class.prototype=proto;
-						Class = new Class;
 						Class.prototype.constructor = Class;
+						Class = new Class;
 					}
 					proto = isFunction ?
 						extending[i].prototype:
@@ -159,7 +160,7 @@
 					if(isFunction) {
 						extending[i].prototype = Class;
 						extending[i].prototype.constructor = extending[i];
-						instance = instanciate(extending[i], args);
+						instance = instantiate(extending[i], args);
 						extending[i].prototype = proto;
 						extending[i].prototype.constructor = extending[i];
 
