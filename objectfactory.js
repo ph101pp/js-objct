@@ -28,8 +28,7 @@
 	var superTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
 	var abstractTest = /xyz/.test(function(){xyz;}) ? /\bFunction\b/ : /.*/;
 	var factory = function(){};
-	var super = true;
-	var reserved = ["_build", "extend", "_abstract", "_instanceof"]; // Reserved as "static" methods
+	var reserved = ["extend", "_abstract", "_instanceof"]; // Reserved as "static" methods
 	var attachSuper = function(fn, _super) {
 		var attach = function() {
 			var tmp = this._super;
@@ -60,6 +59,7 @@
 	var Inheritance = function(children, _abstract){
 		var extending = [];
 		var abstract = _abstract || false;
+		var _super = true;
 		var abstractMethods = [];
 		var result = undefined;
 		var extend = function(child) {
@@ -80,34 +80,7 @@
 				extending.push(child);
 			}
 		}
-		var Executable = function(){
-			if(abstract) 
-				throw("Abstract class may not be constructed.");
- 	
-			// Create new Instance
-			var instance = Executable._build(undefined, arguments, abstractMethods);
-			var construct;
-
-			// Check if all abstract Methods are implemented
-			for(var i =0; i<abstractMethods.length; i++) 
-				if(instance[abstractMethods[i]] === Function) 
-					throw("Abstract method '"+abstractMethods[i]+"' needs to be defined.");
-
-			// Add substitution for native instanceof operator
-			if(typeof instance.instanceof === "undefined" || ""+instance.instanceof === ""+Executable._instanceof) 
-				instance.instanceof = Executable._instanceof;
-			else 
-				instance._instanceof = Executable._instanceof;
-
-			// Call consruct if available
-			if(instance.construct) 
-				construct = instance.construct.apply(instance, arguments);
-
-			// return instance or if construct() returned function or object, return that. (standart instanication behavior in JS)
-			return typeof construct === "object" || typeof construct === "function" ?
-				construct : instance;
-		}
-		Executable._build = function(Class, args, abstractMethods){
+		var build = function(Class, args, abstractMethods){
 			var isFunction, proto, instance, keys;
 			// Define _instanceof function for every Executable that gets build.
 			Executable._instanceof = function(fn){
@@ -122,8 +95,8 @@
 			};
 			for(var i=0; i<extending.length; i++) {
 				isFunction = typeof extending[i] === "function";
-				if(isFunction && typeof extending[i]._build === "function") {
-					Class=extending[i]._build(Class, args, abstractMethods);
+				if(isFunction && ""+extending[i] === strExecutable) {
+					Class=extending[i].call(Inheritance, Class, args, abstractMethods);
 				}
 				else {
 					if(typeof Class === "undefined") {
@@ -149,7 +122,7 @@
 							abstractMethods.push(key);
 							Class[key] = proto[key];
 						}
-						else if(super && proto[key] !== Class[key]  && typeof proto[key] === "function" && typeof Class[key] === "function" && superTest.test(proto[key]))
+						else if(_super && proto[key] !== Class[key]  && typeof proto[key] === "function" && typeof Class[key] === "function" && superTest.test(proto[key]))
 							Class[key] = attachSuper(proto[key], Class[key]);
 						else
 							Class[key] = proto[key];
@@ -163,7 +136,7 @@
 						extending[i].prototype = proto;
 						extending[i].prototype.constructor = extending[i];
 
-						if((super && superTest.test(extending[i])) || (abstract && abstractTest.test(extending[i]))) {
+						if((_super && superTest.test(extending[i])) || (abstract && abstractTest.test(extending[i]))) {
 							keys = Object.getOwnPropertyNames(instance);
 							for(var k=0; k<keys.length; k++){
 								// test if abstract method
@@ -171,7 +144,7 @@
 									abstractMethods.push(keys[k]);
 								}
 								// test if _super has to be attached
-								else if(super && Class[keys[k]] !== instance[keys[k]]  && typeof instance[keys[k]] === "function" && typeof Class[keys[k]] === "function" && superTest.test(instance[keys[k]])) 
+								else if(_super && Class[keys[k]] !== instance[keys[k]]  && typeof instance[keys[k]] === "function" && typeof Class[keys[k]] === "function" && superTest.test(instance[keys[k]])) 
 									instance[keys[k]] = attachSuper(instance[keys[k]], Class[keys[k]]);
 							}
 						}
@@ -181,6 +154,37 @@
 			}
 			return Class;
 		}
+		var Executable = function(Class, args, absMethods){
+			// If we're in the building process
+			if(this === Inheritance) return build(Class, args, absMethods);
+
+			if(abstract) 
+				throw("Abstract class may not be constructed.");
+ 	
+			var instance = build(undefined, arguments, abstractMethods);
+			var construct;
+
+			// Check if all abstract Methods are implemented
+			for(var i =0; i<abstractMethods.length; i++) 
+				if(instance[abstractMethods[i]] === Function) 
+					throw("Abstract method '"+abstractMethods[i]+"' needs to be defined.");
+
+			// Add substitution for native instanceof operator
+			if(typeof instance.instanceof === "undefined" || ""+instance.instanceof === ""+Executable._instanceof) 
+				instance.instanceof = Executable._instanceof;
+			else 
+				instance._instanceof = Executable._instanceof;
+
+			// Call consruct if available
+			if(instance.construct) 
+				construct = instance.construct.apply(instance, arguments);
+
+			// return instance or if construct() returned function or object, return that. (standart instanication behavior in JS)
+			return typeof construct === "object" || typeof construct === "function" ?
+				construct : instance;
+		}
+		var strExecutable = ""+Executable;
+
 		Executable._abstract = function(){
 			return abstract
 		}
