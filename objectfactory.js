@@ -81,9 +81,6 @@
 			}
 		}
 		var Executable = function(){
- 			// Create instance if not already done.
-			if(!(this instanceof Executable))
-				return instantiate(Executable, arguments);
 			if(abstract) 
 				throw("Abstract class may not be constructed.");
  	
