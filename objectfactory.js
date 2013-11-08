@@ -9,9 +9,14 @@
 	"use strict";
 	var superTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
 	var abstractTest = /xyz/.test(function(){xyz;}) ? /\bFunction\b/ : /.*/;
+	var options = {
+		deep : false,
+		abstract : false,
+		super : false
+	}
 	var instance = function(){};
 	var strExecutable;
-	var reserved = ["_abstract", "_instanceof"]; // Reserved as "static" methods
+	var reserved = ["_instanceof"]; // Reserved as "static" methods
 	var attachSuper = function(fn, _super) {
 		var attached = function() {
 			var tmp = this._super;
@@ -50,28 +55,23 @@
 	var Factory = function(children){
 		var extending = [];
 		var abstractMethods = [];
+		var type, deep, _super, abstract;
 		var extend = function(child) {
-			var key,type;
-			type=typeof child;
-			if(type === "object" || type === "function"){
-				if(type === "function") {
-					for(key in child) {
-						if(reserved.indexOf(key) < 0) 
-							Executable[key]= typeof Executable[key] === "function" ?
-								attachSuper(child[key], Executable[key]):
-								child[key];
-						else if(''+child !== strExecutable) 
-							throw("The property name '_instanceof' is reserved and can't be set as static property. (Sorry)");
+			var key;
+		
+			if(typeof child.obj === "function") {
+				for(key in child.obj) {
+					if(reserved.indexOf(key) < 0) {
+						Executable[key]= typeof Executable[key] === "function" ?
+							attachSuper(child.obj[key], Executable[key]):
+							child.obj[key];
+					}
+					else if(child.strObj !== strExecutable) {
+						throw("The property name '_instanceof' is reserved and can't be set as static property. (Sorry)");
 					}
 				}
-				extending.push({
-					obj : child,
-					strObj : ""+child,
-					deep : false,
-					abstract : true,
-					super : true
-				});
 			}
+			extending.push(child);
 		}
 		var build = function(Class, extending, args, abstractMethods){
 			var isFunction, proto, instance, keys, child;
@@ -91,7 +91,6 @@
 							for(var key in Class)
 								if(Class[key] === Function)
 									abstractMethods.push(key); 
-					
 						continue;
 					}
 					if(!isFunction) Class = instantiate(Class);
@@ -178,12 +177,30 @@
 		}
 		strExecutable = ""+Executable;
 
-  		for(var key in children)
-  			if(typeof children[key] === "object" || typeof children[key] === "function")
-				extend(children[key]);
+  		for(var key in children) {
+  			type = typeof children[key];
+  			if(type === "object" || type === "function") {
+
+  				if(Object.prototype.toString.call(children[key]) === "[object Array]") {
+  				}
+  				else {
+  					deep = options.deep;
+  					_super = options.super;
+  					abstract = options.abstract;
+  				}
+
+				extend({ 
+					obj : children[key],
+					strObj : type === "function" ? ""+children[key] : "",
+					deep : deep,
+					super : _super,
+					abstract : abstract
+				});
+			
+			} 
 			else 
 				throw("Unexpected '"+typeof children[key]+"'! Only 'functions' and 'objects' can be used with the objectfactory.");
-
+		}
 		return Executable;
 	}
 	var objectfactory = function(){
