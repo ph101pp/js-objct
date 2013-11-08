@@ -27,7 +27,8 @@
 	"use strict";
 	var superTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
 	var abstractTest = /xyz/.test(function(){xyz;}) ? /\bFunction\b/ : /.*/;
-	var empty = function(){};
+	var factory = function(){};
+	var super = true;
 	var reserved = ["_build", "extend", "_abstract", "_instanceof"]; // Reserved as "static" methods
 	var attachSuper = function(fn, _super) {
 		var attach = function() {
@@ -45,15 +46,14 @@
 	var instantiate = function(fn, args){
 		var f;
 		if(typeof fn === "function") {
-			empty.prototype = fn.prototype;
-			empty.prototype.constructor = fn;
-			f = new empty();
+			factory.prototype = fn.prototype;
+			factory.prototype.constructor = fn;
+			f = new factory();
 			fn.apply(f, args);
 		}
 		if(typeof fn === "object") {
-			empty.prototype = fn;
-			empty.prototype.constructor = empty;
-			f = new empty();
+			factory.prototype = fn;
+			f = new factory();
 		}
 		return f;	
 	}
@@ -86,6 +86,7 @@
  	
 			// Create new Instance
 			var instance = Executable._build(undefined, arguments, abstractMethods);
+			var construct;
 
 			// Check if all abstract Methods are implemented
 			for(var i =0; i<abstractMethods.length; i++) 
@@ -100,7 +101,8 @@
 
 			// Call consruct if available
 			if(instance.construct) 
-				var construct = instance.construct.apply(instance, arguments);
+				construct = instance.construct.apply(instance, arguments);
+
 			// return instance or if construct() returned function or object, return that. (standart instanication behavior in JS)
 			return typeof construct === "object" || typeof construct === "function" ?
 				construct : instance;
@@ -132,26 +134,27 @@
 							for(var key in Class)
 								if(Class[key] === Function)
 									abstractMethods.push(key); 
+					
 						continue;
 					}
 					if(!isFunction) Class = instantiate(Class);
-					
+
 					proto = isFunction ?
 						extending[i].prototype:
 						extending[i];
 
 					for(var key in proto) {
-						
-						if(abstract && proto[key] === Function) {
+					
+						if(abstract && proto[key] === Function && typeof Class[keys[k]] !== "function") {
 							abstractMethods.push(key);
-							if(Class[key] && Class[key] !== Function) 
-								throw("Can't override '"+key+"' with abstract method.");
 							Class[key] = proto[key];
 						}
-						else Class[key] = proto[key] !== Class[key]  && typeof proto[key] === "function" && typeof Class[key] === "function" && superTest.test(proto[key]) ?
-							attachSuper(proto[key], Class[key]):
-							proto[key];
+						else if(super && proto[key] !== Class[key]  && typeof proto[key] === "function" && typeof Class[key] === "function" && superTest.test(proto[key]))
+							Class[key] = attachSuper(proto[key], Class[key]);
+						else
+							Class[key] = proto[key];
 					}
+						
 					
 					if(isFunction) {
 						extending[i].prototype = Class;
@@ -160,18 +163,15 @@
 						extending[i].prototype = proto;
 						extending[i].prototype.constructor = extending[i];
 
-						if(superTest.test(extending[i]) || (abstract && abstractTest.test(extending[i]))) {
+						if((super && superTest.test(extending[i])) || (abstract && abstractTest.test(extending[i]))) {
 							keys = Object.getOwnPropertyNames(instance);
 							for(var k=0; k<keys.length; k++){
 								// test if abstract method
-								if(abstract && instance[keys[k]] === Function) {
+								if(abstract && instance[keys[k]] === Function && typeof Class[keys[k]] !== "function") {
 									abstractMethods.push(keys[k]);
-									if(Class[keys[k]] && Class[keys[k]] !== Function) 
-										throw("Can't override '"+keys[k]+"' with abstract method.");
-									continue;
 								}
 								// test if _super has to be attached
-								else if(Class[keys[k]] !== instance[keys[k]]  && typeof instance[keys[k]] === "function" && typeof Class[keys[k]] === "function" && superTest.test(instance[keys[k]])) 
+								else if(super && Class[keys[k]] !== instance[keys[k]]  && typeof instance[keys[k]] === "function" && typeof Class[keys[k]] === "function" && superTest.test(instance[keys[k]])) 
 									instance[keys[k]] = attachSuper(instance[keys[k]], Class[keys[k]]);
 							}
 						}
