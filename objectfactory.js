@@ -28,6 +28,7 @@
 	var superTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
 	var abstractTest = /xyz/.test(function(){xyz;}) ? /\bFunction\b/ : /.*/;
 	var factory = function(){};
+	var strExecutable;
 	var reserved = ["extend", "_abstract", "_instanceof"]; // Reserved as "static" methods
 	var attachSuper = function(fn, _super) {
 		var attach = function() {
@@ -56,6 +57,7 @@
 		}
 		return f;	
 	}
+	
 	var Inheritance = function(children, _abstract){
 		var extending = [];
 		var abstract = _abstract || false;
@@ -80,7 +82,7 @@
 				extending.push(child);
 			}
 		}
-		var build = function(Class, args, abstractMethods){
+		var build = function(Class, extending, args, abstractMethods){
 			var isFunction, proto, instance, keys;
 
 			for(var i=0; i<extending.length; i++) {
@@ -158,12 +160,12 @@
 			};
 
 			// If we're in the building process
-			if(this === Inheritance) return build(Class, args, absMethods);
+			if(this === Inheritance) return build(Class, extending, args, absMethods);
 
 			if(abstract) 
 				throw("Abstract class may not be constructed.");
  	
-			var instance = build(undefined, arguments, abstractMethods);
+			var instance = build(undefined, extending, arguments, abstractMethods);
 			var construct;
 
 			// Check if all abstract Methods are implemented
@@ -185,7 +187,7 @@
 			return typeof construct === "object" || typeof construct === "function" ?
 				construct : instance;
 		}
-		var strExecutable = ""+Executable;
+		strExecutable = ""+Executable;
 
 		Executable._abstract = function(){
 			return abstract
