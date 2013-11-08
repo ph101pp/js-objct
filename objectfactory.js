@@ -82,17 +82,7 @@
 		}
 		var build = function(Class, args, abstractMethods){
 			var isFunction, proto, instance, keys;
-			// Define _instanceof function for every Executable that gets build.
-			Executable._instanceof = function(fn){
-				if(this instanceof fn || Executable === fn) return true;
-				for(var i=0; i<extending.length; i++) {
-					if(typeof extending[i]._instanceof === "function" && extending[i]._instanceof(fn)) 
-						return true;
-					else if(extending[i] === fn) 
-						return true;
-				}
-				return false;
-			};
+
 			for(var i=0; i<extending.length; i++) {
 				isFunction = typeof extending[i] === "function";
 				if(isFunction && ""+extending[i] === strExecutable) {
@@ -155,6 +145,18 @@
 			return Class;
 		}
 		var Executable = function(Class, args, absMethods){
+			// Define _instanceof function for every Executable that gets build.
+			Executable._instanceof = function(fn){
+				if((typeof fn === "function" && this instanceof fn) || Executable === fn) return true;
+				for(var i=0; i<extending.length; i++) {
+					if(typeof extending[i]._instanceof === "function" && extending[i]._instanceof(fn)) 
+						return true;
+					else if(extending[i] === fn) 
+						return true;
+				}
+				return false;
+			};
+
 			// If we're in the building process
 			if(this === Inheritance) return build(Class, args, absMethods);
 
@@ -179,7 +181,7 @@
 			if(instance.construct) 
 				construct = instance.construct.apply(instance, arguments);
 
-			// return instance or if construct() returned function or object, return that. (standart instanication behavior in JS)
+			// return instance or if construct() returned function or object, return that. (standard instanication behavior in JS)
 			return typeof construct === "object" || typeof construct === "function" ?
 				construct : instance;
 		}
