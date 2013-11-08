@@ -31,7 +31,7 @@
 	var strExecutable;
 	var reserved = ["_abstract", "_instanceof"]; // Reserved as "static" methods
 	var attachSuper = function(fn, _super) {
-		var attach = function() {
+		var attached = function() {
 			var tmp = this._super;
 			this._super = _super;
 			var ret = fn.apply(this, arguments); 
@@ -39,9 +39,9 @@
 			return ret;
 		}
 		//prevent infinite recursion on _super() call in "last" super method.
-		if(typeof _super === "function" && _super != attach) 
+		if(typeof _super === "function" && _super != attached) 
 			_super=attachSuper(_super, undefined);
-		return attach;
+		return attached;
 	}
 	var instantiate = function(fn, args){
 		var f;
@@ -58,7 +58,7 @@
 		return f;	
 	}
 	
-	var Inheritance = function(children, _abstract){
+	var Factory = function(children, _abstract){
 		var extending = [];
 		var abstract = _abstract || false;
 		var _super = true;
@@ -88,7 +88,7 @@
 			for(var i=0; i<extending.length; i++) {
 				isFunction = typeof extending[i] === "function";
 				if(isFunction && ""+extending[i] === strExecutable) {
-					Class=extending[i].call(Inheritance, Class, args, abstractMethods);
+					Class=extending[i].call(Factory, Class, args, abstractMethods);
 				}
 				else {
 					if(typeof Class === "undefined") {
@@ -160,7 +160,7 @@
 			};
 
 			// If we're in the building process
-			if(this === Inheritance) return build(Class, extending, args, absMethods);
+			if(this === Factory) return build(Class, extending, args, absMethods);
 
 			if(abstract) 
 				throw("Abstract class may not be constructed.");
@@ -202,10 +202,10 @@
 		return Executable;
 	}
 	var objectfactory = function(){
-		return new Inheritance(arguments);
+		return new Factory(arguments);
 	}
 	objectfactory.abstract  = function(){
-		return new Inheritance(arguments,true);
+		return new Factory(arguments,true);
 	}	
 
 	if(typeof module === "object") module.exports = objectfactory;
