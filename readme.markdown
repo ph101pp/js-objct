@@ -1,24 +1,28 @@
 #JS objectfactory
 
-A JavaScript modular inheritance class that works nicely with browserify, CommonJS or just vanilla JavaScript.
+A modular JavaScript inheritance library that works nicely with browserify, CommonJS or just vanilla JavaScript.
 
 ----------------
 
 __Keyfeatures:__
 
-* Functions and Objects can extend and be extended.
+* Multiple inheritance. Objects can be modular assembled for each new class.
+* Private, privileged and public methods. Closures are preserved and kept separated for each instance.
+* factory objects can be extended and used with the objectfactory.
 * Easy definable constructor function
 * Overwritten methods can be accessed with the _super keyword.
-* Objects can be modular assembled for each new class.
-* Private, privileged and public methods. Closures are preserved and kept separated for each instance.
 * Possibility to define abstract classes and methods
 * "Static" object methods are preserved and passed along.
+* Very light weight.
 
 ----------------
 
 I developed the objectfactory for my bachelor thesis project [jnstrument](http://jnstrument.com), where I used a node server and browserify to serve the JavaScript.
 
-Because this class turned out to be pretty valuable I decided to create this spin off project.
+I was originally looking at the [Simple JavaScript Inheritance](http://ejohn.org/blog/simple-javascript-inheritance/) by John Resig, but found it to be to "public". I wanted to make use of closures and "private" methods. Also instances should be separated from eachother, so that changing one wouldn't affect the others. So I started to make changes on John Resigs script and soon ended up rewriting it completely. 
+
+The outcome of this rewrite turned out to be a light weight library that was very valuable and awesome for my project. 
+It also turned out that there are other people having similar ideas and are better in explaining why this is awesome: [Fluent JavaScript – Three Different Kinds Of Prototypal OO](http://ericleads.com/2013/02/fluent-javascript-three-different-kinds-of-prototypal-oo/) by Eric Elliott.
 
 #Documentation
 
@@ -45,7 +49,7 @@ or into your web project by adding
 And you're good to go!
 
 	
-2. Extend Public Methods and Properties
+2. Create Modular Factories
 ----------------
 
 ``` javascript
@@ -53,70 +57,201 @@ var objectfactory = require("objectfactory");
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var standardCar = {					
-	drive : function(){
-		return "driving";
+// A
+var a = {
+	a : "A",					
+	getA : function(){
+		return this.a;
+	},
+	getValue:function(){
+		return this.a;
 	}
+}
 
+// B
+var b =  function(){};
+b.prototype.b = "B";
+b.prototype.getB = function(){
+	return this.b
+}
+b.prototype.getValue = function(){
+	return this.b
+}
+
+// C
+var c = function (){	
+	this.c = "C";
+	this.getC = function(){
+		return this.c;
+	}	
+	this.getValue = function(){
+		return this.c;
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var FeatureAirConditioner =  function(){};
+var factoryABC 	= objectfactory(a, b, c);
+var factoryB	= objectfactory(b);
+var factoryBC 	= factoryB.extend(c);
+var factoryCB 	= objectfactory(c).extend(factoryB);
+	
+///////////////////////////////////////////////////////////////////////////////
 
-FeatureAirConditioner.prototype.hasAC = true;
+var instanceABC = factoryABC();	// is the same as: new factoryABC();
+								// {a:"A", b:"B", c:"C", getA:function, getB:function, getC:function, getValue:function}
+
+instanceABC.getA();				// A
+instanceABC.getB();				// B
+instanceABC.getC();				// C
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var FeatureNavi = function (){	
+var instanceB 	= factoryB();
+var instanceB2 	= factoryB();
 
-	this.hasNavi=function(){
-		return true;
-	}
+instanceB.getB();				// B
+instanceB2.getB();				// B
 
-}
+instanceB.b = "X";
 
-///////////////////////////////////////////////////////////////////////////////
-
-var Mini 		= objectfactory(standardCar, FeatureAirConditioner);
-var Smart 		= objectfactory(standardCar).extend(FeatureNavi);
-var Fiat 		= objectfactory(standardCar).extend(FeatureAirConditioner).extend(FeatureNavi);
-
-var CustomSmart = Smart.extend(FeatureAirConditioner);
+instanceB.getB();				// X
+instanceB2.getB();				// B -> instances are completely separated. Changing one doesn't affect the others.
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var smart 		= Smart(); 				// Error: "Classes need to be initiated with the new operator."
+var instanceBC = factoryBC();
+var instanceCB = factoryCB();
 
-var car 		= new standardCar();	// { drive:Function }
-var smart 		= new Smart();			// { drive:Function, hasNavi:Function }
-var mini 		= new Mini();			// { drive:Function, hasAC:true }
-var fiat 		= new Fiat();			// { drive:Function, hasAC:true, hasNavi:Function }
-var customSmart = new CustomSmart();	// { drive:Function, hasAC:true, hasNavi:Function }
+instanceBC.getValue();			// C
+instanceCB.getVAlue();			// B -> extending methods overwrite existing methods.
 
-
-car.hasNavi(); 									// undefined
-car.hasAC; 										// undefined
-car.drive();									// driving
-
-smart.hasNavi(); 								// true
-smart.hasAC; 									// undefined
-smart.drive();									// driving
-
-mini.hasNavi();									// undefined
-mini.hasAC;										// true
-mini.drive();									// driving
-
-fiat.hasNavi();						 			// true
-fiat.hasAC;										// true
-fiat.drive();									// driving
-
-customSmart.hasNavi(); 							// true
-customSmart.hasAC;								// true
-customSmart.drive();							// driving
 ```
 
-2. Constructor
+
+3. Closures: Private and privileged methods.
+----------------
+
+Closures are preserved.
+
+``` javascript
+var objectfactory = require("objectfactory");
+
+///////////////////////////////////////////////////////////////////////////////
+
+// A
+var a = {
+	a : "A",					
+	getA : function(){
+		return this.a;
+	},
+	getValue:function(){
+		return this.a;
+	}
+}
+
+// B
+var b = function (){	
+	var b = "B";
+
+	var getValue = function(){
+		return b;
+	}
+
+	this.getB = function(){
+		return getValue();
+	}	
+
+	this.setB = function(_b){
+		b = _b;
+	}
+
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+var factoryAB 	= objectfactory(a, b);
+
+var instanceAB = factoryAB();	
+var instanceAB2 = factoryAB();	
+
+instanceAB.getA();				// A
+instanceAB.getB();				// B -> private method getValue is accessible from within the closure (privileged methods)
+instanceAB.getValue();			// A -> private method getValue doesn't overwrite anything.
+
+instanceAB2.getB();				// B
+instanceAB2.setB("X");					
+instanceAB2.getB();				// X -> private variable changed in instanceAB2
+
+instanceAB.getB();				// B -> Private variable of instanceAB is untouched.
+
+```
+
+4. "static" function object properties
+---------------
+
+All "static" properties of the extending function objects are preserved and are available as "static" properties on the objectfactory object.
+
+``` javascript
+var objectfactory = require("objectfactory");
+
+///////////////////////////////////////////////////////////////////////////////
+
+// A
+var a =  function(){};
+a.prototype.a = "A";
+a.prototype.getA = function(){
+	return this.a
+}
+a.prototype.getValue = function(){
+	return this.a
+}
+
+a.defaultA = "A";
+a.getDefault = function(){ 	
+	return "A";
+}
+
+// B
+var b = function (){	
+	var b = "B";
+
+	var getValue = function(){
+		return b;
+	}
+
+	this.getB = function(){
+		return getValue();
+	}	
+
+	this.setB = function(_b){
+		b = _b;
+	}
+}
+
+b.defaultB = "B";
+b.getDefault = function(){ 
+	return "B";
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+var factoryAB 	= objectfactory(a, b);
+
+var instanceAB = factoryAB();	
+
+factoryAB.defaultA 				// A
+factoryAB.defaultB				// B
+factoryAB.getDefault()			// B -> extending static methods overwrite existing static methods.
+
+instanceAB.defaultA 			// undefined
+instanceAB.defaultB				// undefined
+instanceAB.getDefault()			// undefined
+
+
+```
+
+5. Constructor
 ----------------
 
 A public construct() method will be used as constructor and called on instanciation of the class.
@@ -226,11 +361,7 @@ fiat.getDescription();			// "Standard car with AC and navi"
 ```
 
 
-4. Private Methods and Properties
-----------------
 
-On Initiation each extended function is initiated seperately. 
-So private methods and properties are kept private and separated of other instances.
 
 ``` javascript
 var objectfactory = require("objectfactory");
