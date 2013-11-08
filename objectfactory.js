@@ -47,14 +47,11 @@
 		return f;	
 	}
 	
-	var Factory = function(children, _abstract){
+	var Factory = function(children){
 		var extending = [];
-		var abstract = _abstract || false;
-		var _super = true;
 		var abstractMethods = [];
 		var extend = function(child) {
 			var key,type;
-			if(!_abstract) abstract = typeof child._abstract === "function" ? child._abstract():false;
 			type=typeof child;
 			if(type === "object" || type === "function"){
 				if(type === "function") {
@@ -67,23 +64,30 @@
 							throw("The property name '_instanceof' is reserved and can't be set as static property. (Sorry)");
 					}
 				}
-				extending.push(child);
+				extending.push({
+					obj : child,
+					strObj : ""+child,
+					deep : false,
+					abstract : true,
+					super : true
+				});
 			}
 		}
 		var build = function(Class, extending, args, abstractMethods){
-			var isFunction, proto, instance, keys;
+			var isFunction, proto, instance, keys, child;
 
 			for(var i=0; i<extending.length; i++) {
-				isFunction = typeof extending[i] === "function";
-				if(isFunction && ""+extending[i] === strExecutable) {
-					Class=extending[i].call(Factory, Class, args, abstractMethods);
+				child = extending[i];
+				isFunction = typeof child.obj === "function";
+				if(isFunction && extending[i].strObj === strExecutable) {
+					Class=child.obj.call(Factory, Class, args, abstractMethods);
 				}
 				else {
 					if(typeof Class === "undefined") {
 						Class = isFunction ?
-							instantiate(extending[i], args):
-							Object.create(extending[i]); // Copy object
-						if(abstract)
+							instantiate(child.obj, args):
+							Object.create(child.obj); // Copy object
+						if(child.abstract)
 							for(var key in Class)
 								if(Class[key] === Function)
 									abstractMethods.push(key); 
@@ -93,16 +97,16 @@
 					if(!isFunction) Class = instantiate(Class);
 
 					proto = isFunction ?
-						extending[i].prototype:
-						extending[i];
+						child.obj.prototype:
+						child.obj;
 
 					for(var key in proto) {
 					
-						if(abstract && proto[key] === Function && typeof Class[keys[k]] !== "function") {
+						if(child.abstract && proto[key] === Function && typeof Class[keys[k]] !== "function") {
 							abstractMethods.push(key);
 							Class[key] = proto[key];
 						}
-						else if(_super && proto[key] !== Class[key]  && typeof proto[key] === "function" && typeof Class[key] === "function" && superTest.test(proto[key]))
+						else if(child.super && proto[key] !== Class[key]  && typeof proto[key] === "function" && typeof Class[key] === "function" && superTest.test(proto[key]))
 							Class[key] = attachSuper(proto[key], Class[key]);
 						else
 							Class[key] = proto[key];
@@ -110,21 +114,21 @@
 						
 					
 					if(isFunction) {
-						extending[i].prototype = Class;
-						extending[i].prototype.constructor = extending[i];
-						instance = instantiate(extending[i], args);
-						extending[i].prototype = proto;
-						extending[i].prototype.constructor = extending[i];
+						child.obj.prototype = Class;
+						child.obj.prototype.constructor = child.obj;
+						instance = instantiate(child.obj, args);
+						child.obj.prototype = proto;
+						child.obj.prototype.constructor = child.obj;
 
-						if((_super && superTest.test(extending[i])) || (abstract && abstractTest.test(extending[i]))) {
+						if((child.super && superTest.test(child.obj)) || (child.abstract && abstractTest.test(child.obj))) {
 							keys = Object.getOwnPropertyNames(instance);
 							for(var k=0; k<keys.length; k++){
 								// test if abstract method
-								if(abstract && instance[keys[k]] === Function && typeof Class[keys[k]] !== "function") {
+								if(child.abstract && instance[keys[k]] === Function && typeof Class[keys[k]] !== "function") {
 									abstractMethods.push(keys[k]);
 								}
 								// test if _super has to be attached
-								else if(_super && Class[keys[k]] !== instance[keys[k]]  && typeof instance[keys[k]] === "function" && typeof Class[keys[k]] === "function" && superTest.test(instance[keys[k]])) 
+								else if(child.super && Class[keys[k]] !== instance[keys[k]]  && typeof instance[keys[k]] === "function" && typeof Class[keys[k]] === "function" && superTest.test(instance[keys[k]])) 
 									instance[keys[k]] = attachSuper(instance[keys[k]], Class[keys[k]]);
 							}
 						}
@@ -139,9 +143,9 @@
 			Executable._instanceof = function(fn){
 				if((typeof fn === "function" && this instanceof fn) || Executable === fn) return true;
 				for(var i=0; i<extending.length; i++) {
-					if(typeof extending[i]._instanceof === "function" && extending[i]._instanceof(fn)) 
+					if(typeof extending[i].obj._instanceof === "function" && extending[i].obj._instanceof(fn)) 
 						return true;
-					else if(extending[i] === fn) 
+					else if(extending[i].obj === fn) 
 						return true;
 				}
 				return false;
@@ -149,9 +153,6 @@
 
 			// If we're in the building process
 			if(this === Factory) return build(Class, extending, args, absMethods);
-
-			if(abstract) 
-				throw("Abstract class may not be constructed.");
  	
 			var instance = build(undefined, extending, arguments, abstractMethods);
 			var construct;
@@ -188,9 +189,6 @@
 	var objectfactory = function(){
 		return new Factory(arguments);
 	}
-	objectfactory.abstract  = function(){
-		return new Factory(arguments,true);
-	}	
 
 	if(typeof module === "object") module.exports = objectfactory;
 	else window.objectfactory = objectfactory;
