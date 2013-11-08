@@ -4,30 +4,12 @@
  * Copyright (c) 2013 Philipp Adrian (www.philippadrian.com)
  *
  * The MIT Licence (http://opensource.org/licenses/MIT)
- *   
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions: 
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
  */
 (function(undefined){
 	"use strict";
 	var superTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
 	var abstractTest = /xyz/.test(function(){xyz;}) ? /\bFunction\b/ : /.*/;
-	var factory = function(){};
+	var instance = function(){};
 	var strExecutable;
 	var reserved = ["_abstract", "_instanceof"]; // Reserved as "static" methods
 	var attachSuper = function(fn, _super) {
@@ -46,14 +28,21 @@
 	var instantiate = function(fn, args){
 		var f;
 		if(typeof fn === "function") {
-			factory.prototype = fn.prototype;
-			factory.prototype.constructor = fn;
-			f = new factory();
-			fn.apply(f, args);
+			if(typeof Function.prototype.bind === "function") {
+				// Slightly slower but keeps Class names intact for the inspector.
+                Array.prototype.unshift.call(args, null);
+                f = new (Function.prototype.bind.apply(fn, args));
+			}
+			else {
+				instance.prototype = fn.prototype;
+				instance.prototype.constructor = fn;
+				f = new instance();
+				fn.apply(f, args);
+			}
 		}
-		if(typeof fn === "object") {
-			factory.prototype = fn;
-			f = new factory();
+		else if(typeof fn === "object") {
+			instance.prototype = fn;
+			f = new instance();
 		}
 		return f;	
 	}
@@ -63,7 +52,6 @@
 		var abstract = _abstract || false;
 		var _super = true;
 		var abstractMethods = [];
-		var result = undefined;
 		var extend = function(child) {
 			var key,type;
 			if(!_abstract) abstract = typeof child._abstract === "function" ? child._abstract():false;
@@ -75,8 +63,8 @@
 							Executable[key]= typeof Executable[key] === "function" ?
 								attachSuper(child[key], Executable[key]):
 								child[key];
-						else if(''+child !== ''+Executable) 
-							throw("Property names '_build', 'extend', '_instanceof' and '_abstract' are reserved and can't be set as static properties. (Sorry)");
+						else if(''+child !== strExecutable) 
+							throw("The property name '_instanceof' is reserved and can't be set as static property. (Sorry)");
 					}
 				}
 				extending.push(child);
@@ -188,10 +176,6 @@
 				construct : instance;
 		}
 		strExecutable = ""+Executable;
-
-		Executable._abstract = function(){
-			return abstract
-		}
 
   		for(var key in children)
   			if(typeof children[key] === "object" || typeof children[key] === "function")
