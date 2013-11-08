@@ -27,6 +27,7 @@
 	"use strict";
 	var superTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
 	var abstractTest = /xyz/.test(function(){xyz;}) ? /\bFunction\b/ : /.*/;
+	var empty = function(){};
 	var attachSuper = function(fn, _super) {
 		var attach = function() {
 			var tmp = this._super;
@@ -40,6 +41,18 @@
 			_super=attachSuper(_super, undefined);
 		return attach;
 	}
+	var instanciate = typeof Function.prototype.bind === "function" ? 
+			function(fn, args) {
+				Array.prototype.unshift.call(args, null);
+		 		return new (Function.prototype.bind.apply(fn, args));
+			}:
+			function(fn, args){
+			    empty.prototype = fn.prototype;
+			    empty.prototype.constructor = fn;
+			    var f = new empty();
+			    fn.apply(f, args);
+			    return f;	
+			}
 	var Inheritance = function(children, _abstract){
 		var extending = [];
 		var abstract = _abstract || false;
@@ -64,13 +77,12 @@
 			}
 		}
 		var Executable = function(){
- 			Array.prototype.unshift.call(arguments, null);
  			// Create instance if not already done.
 			if(!(this instanceof Executable))
-				return new (Function.prototype.bind.apply(Executable, arguments));
+				return instanciate(Executable, arguments);
 			if(abstract) 
 				throw("Abstract class may not be constructed.");
-
+ 	
 			// Create new Instance
 			var instance = Executable._build(undefined, arguments, abstractMethods);
 
@@ -86,7 +98,6 @@
 				instance._instanceof = Executable._instanceof;
 
 			// Call consruct if available
-			Array.prototype.shift.call(arguments);
 			if(instance.construct) 
 				var construct = instance.construct.apply(instance, arguments);
 			// return instance or if construct() returned function or object, return that. (standart instanication behavior in JS)
@@ -114,8 +125,8 @@
 				else {
 					if(typeof Class === "undefined") {
 						Class = isFunction ?
-							new (Function.prototype.bind.apply(extending[i], args)):
-							Object.create(extending[i]);
+							instanciate(extending[i], args):
+							Object.create(extending[i]); // Copy object
 						if(abstract)
 							for(var key in Class)
 								if(Class[key] === Function)
@@ -124,10 +135,10 @@
 					}
 					if(!isFunction) {
 						proto = Class;
-						Class = function(){};
+						Class = empty;
 						Class.prototype=proto;
-						Class.prototype.constructor = Class;
 						Class = new Class;
+						Class.prototype.constructor = Class;
 					}
 					proto = isFunction ?
 						extending[i].prototype:
@@ -148,13 +159,14 @@
 					if(isFunction) {
 						extending[i].prototype = Class;
 						extending[i].prototype.constructor = extending[i];
-						instance = new (Function.prototype.bind.apply(extending[i], args));
+						instance = instanciate(extending[i], args);
 						extending[i].prototype = proto;
 						extending[i].prototype.constructor = extending[i];
 
 						if(superTest.test(extending[i]) || (abstract && abstractTest.test(extending[i]))) {
 							keys = Object.getOwnPropertyNames(instance);
 							for(var k=0; k<keys.length; k++){
+								// test if abstract method
 								if(abstract && instance[keys[k]] === Function) {
 									abstractMethods.push(keys[k]);
 									if(Class[keys[k]] && Class[keys[k]] !== Function) 
