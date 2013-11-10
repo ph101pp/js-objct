@@ -10,6 +10,7 @@
 
 var superTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
 var abstractTest = /xyz/.test(function(){xyz;}) ? /\bFunction\b/ : /.*/;
+var defaultReserved = "__instanceof";
 var instance = function(){};
 var defaultOptions = {
 	deep : false,
@@ -18,6 +19,9 @@ var defaultOptions = {
 }
 
 var attachSuper = function(fn, _super) {
+	if(typeof fn !== "function" || typeof _super !== "function" || !superTest.test(fn)) {
+		return fn;
+	}
 	var attached = function() {
 		var tmp = this._super;
 		this._super = _super;
@@ -85,7 +89,7 @@ var build = function(Class, modules, args, abstractMethods){
 					abstractMethods.push(key);
 					Class[key] = proto[key];
 				}
-				else if(module.super && proto[key] !== Class[key]  && typeof proto[key] === "function" && typeof Class[key] === "function" && superTest.test(proto[key]))
+				else if(module.super && proto[key] !== Class[key])
 					Class[key] = attachSuper(proto[key], Class[key]);
 				else
 					Class[key] = proto[key];
@@ -107,8 +111,9 @@ var build = function(Class, modules, args, abstractMethods){
 							abstractMethods.push(keys[k]);
 						}
 						// test if _super has to be attached
-						else if(module.super && Class[keys[k]] !== instance[keys[k]]  && typeof instance[keys[k]] === "function" && typeof Class[keys[k]] === "function" && superTest.test(instance[keys[k]])) 
+						else if(module.super && Class[keys[k]] !== instance[keys[k]]) { 
 							instance[keys[k]] = attachSuper(instance[keys[k]], Class[keys[k]]);
+						}
 					}
 				}
 				Class = instance;
@@ -118,74 +123,21 @@ var build = function(Class, modules, args, abstractMethods){
 	return Class;
 }
 
-var addModule = function(modules, module) {
-	var key;
-
-	if(typeof module.obj === "function") {
-		for(key in module.obj) {
-			if(key === "__instanceof") {
-				Executable[key]= typeof Executable[key] === "function" ?
-					attachSuper(module.obj[key], Executable[key]):
-					module.obj[key];
-			}
-			else if(module.strObj !== strExecutable) {
-				throw("The property name '__instanceof' is reserved and can't be set as static property. (Sorry)");
-			}
-		}
-	}
-	modules.push(module);
-}
-
-var createModules = function(modules, args) {
-	var type, isArray;
-	var options = Object.create(Factory.options);
-
-	for(var i=0; i < args.length; i++) {
-		type = typeof args[i];
-
-		
-		if(type === "object" || type === "function") {
-			isArray = Object.prototype.toString.call(args[i]);
-			if(type === "function" || isArray !== "[object Array]") {
-				addModule( modules, { 
-					obj : args[i],
-					strObj : type === "function" ? ""+args[i] : "",
-					deep : options.deep,
-					super : options.super,
-					abstract : options.abstract
-				});
-			}
-			else if(i == 0) {
-				options = Object.create(defaultOptions);
-
-				for(var k=0; k < args[i].length; k++) {
-					if(typeof args[i][k] === "string") {
-						if(typeof options[args[i][k]] === "boolean") {
-							options[args[i][k]] = true;
-						}
-					}
-				}
-			}
-			else 
-				throw("Unexpected 'Array'! Arrays are only allowed as first parameter to set options.");
-		} 
-		else 
-			throw("Unexpected '"+typeof args[i]+"'! Only 'functions' and 'objects' can be used with the objectfactory.");
-	}
-}
-
 var Factory = function(){
+	var type, isArray, module, k;
+	var options = Object.create(Factory.options);
 	var modules = [];
 	var abstractMethods = [];
+	var reserved = Factory.reserved;  //save global reserved property name in local Factory
 
-	createModules(modules, arguments);
+	var Executable = function Executable(Class, args, absMethods){
+		// Define instanceof function for every Executable that gets build.
+		Executable[reserved] = function(fn){
+			if(typeof fn === "function" && this instanceof fn) return true;
+			if(Executable === fn) return true;
 
-	return function Executable(Class, args, absMethods){
-		// Define __instanceof function for every Executable that gets build.
-		Executable.__instanceof = function(fn){
-			if((typeof fn === "function" && this instanceof fn) || Executable === fn) return true;
 			for(var i=0; i<modules.length; i++) {
-				if(typeof modules[i].obj._instanceof === "function" && modules[i].obj._instanceof(fn)) 
+				if(modules[i].objStr === strExecutable && modules[i].obj[reserved](fn)) 
 					return true;
 				else if(modules[i].obj === fn) 
 					return true;
@@ -197,7 +149,7 @@ var Factory = function(){
 		if(this === Factory) return build(Class, modules, args, absMethods);
 	
 		var instance = build(undefined, modules, arguments, abstractMethods);
-		var construct;
+		var construct, returnType;
 
 		// Check if all abstract Methods are implemented
 		for(var i =0; i<abstractMethods.length; i++) 
@@ -205,24 +157,81 @@ var Factory = function(){
 				throw("Abstract method '"+abstractMethods[i]+"' needs to be defined.");
 
 		// Add substitution for native instanceof operator
+		if(typeof instance === "undefined") instance = {};
 		if(typeof instance.instanceof === "undefined" || (typeof instance.instanceof === "function" && ""+instance.instanceof === str__instanceof)) 
-			instance.instanceof = Executable.__instanceof;
+			instance.instanceof = Executable[reserved];
 		else 
-			instance._instanceof = Executable.__instanceof;
+			instance._instanceof = Executable[reserved];
 
-		// Call consruct if available
+		// Call construct if available
 		if(instance.construct) 
 			construct = instance.construct.apply(instance, arguments);
 
+		returnType = typeof construct;
+
 		// return instance or if construct() returned function or object, return that. (standard instantiation behavior in JS)
-		return typeof construct === "object" || typeof construct === "function" ?
+		return returnType === "object" || returnType === "function" ?
 			construct : instance;
 	}
+	
+	for(var i=0; i < arguments.length; i++) {
+		type = typeof arguments[i];
+		
+		if(type === "object" || type === "function") {
+			isArray = Object.prototype.toString.call(arguments[i]);
+			if(type === "function" || isArray !== "[object Array]") {
+				module = { 
+					obj : arguments[i],
+					strObj : type === "function" ? ""+arguments[i] : "",
+					deep : options.deep,
+					super : options.super,
+					abstract : options.abstract
+				}
+
+				if(typeof module.obj === "function") {
+					if(typeof module.obj[reserved] !== "undefined") {
+						if(module.strObj === strExecutable) 
+							module.obj[reserved] = Executable[reserved];
+						else 
+							throw("The property name '"+reserved+"' is reserved and can't be set as static property. Change this by defining objectfactory.reserved = 'newReservedName'");
+					}
+					for(k in module.obj) {
+						if(options.super) {
+							Executable[k] = attachSuper(module.obj[k], Executable[k]);
+						}
+						else {
+							Executable[k] = module.obj[k];
+						}
+					}
+				}
+				modules.push(module);
+			}
+			else if(i == 0) {
+				options = Object.create(defaultOptions);
+
+				for(var k=0; k < arguments[i].length; k++) {
+					if(typeof arguments[i][k] === "string") {
+						if(typeof options[arguments[i][k]] === "boolean") {
+							options[arguments[i][k]] = true;
+						}
+					}
+				}
+			}
+			else 
+				throw("Unexpected 'Array'! Arrays are only allowed as first parameter to set options. [deep, super, abstract]");
+		} 
+		else 
+			throw("Unexpected '"+typeof arguments[i]+"'! Only 'functions' and 'objects' can be used with the objectfactory.");
+	}	
+
+	return Executable;
 }
 Factory.options = Object.create(defaultOptions);
+Factory.reserved = defaultReserved;
 
-var strExecutable = ""+Factory();
-var str__instanceof = ""+Factory().__instanceof;
+var factory = Factory();
+var strExecutable = ""+factory;
+var str__instanceof = ""+factory.__instanceof;
 
 
 if(typeof module === "object") module.exports = Factory;
