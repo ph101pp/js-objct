@@ -11,12 +11,12 @@
 var superTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
 var abstractTest = /xyz/.test(function(){xyz;}) ? /\bFunction\b/ : /.*/;
 var instance = function(){};
-var reserved = ["_instanceof"]; // Reserved as "static" methods
-var options = {
+var defaultOptions = {
 	deep : false,
 	abstract : false,
 	super : false
 }
+
 var attachSuper = function(fn, _super) {
 	var attached = function() {
 		var tmp = this._super;
@@ -53,21 +53,21 @@ var instantiate = function(fn, args){
 	return f;	
 }
 
-var build = function(Class, extending, args, abstractMethods){
-	var isFunction, proto, instance, keys, child;
+var build = function(Class, modules, args, abstractMethods){
+	var isFunction, proto, instance, keys, module;
 
-	for(var i=0; i<extending.length; i++) {
-		child = extending[i];
-		isFunction = typeof child.obj === "function";
-		if(isFunction && extending[i].strObj === strExecutable) {
-			Class=child.obj.call(Factory, Class, args, abstractMethods);
+	for(var i=0; i<modules.length; i++) {
+		module = modules[i];
+		isFunction = typeof module.obj === "function";
+		if(isFunction && modules[i].strObj === strExecutable) {
+			Class=module.obj.call(Factory, Class, args, abstractMethods);
 		}
 		else {
 			if(typeof Class === "undefined") {
 				Class = isFunction ?
-					instantiate(child.obj, args):
-					Object.create(child.obj); // Copy object
-				if(child.abstract)
+					instantiate(module.obj, args):
+					Object.create(module.obj); // Copy object
+				if(module.abstract)
 					for(var key in Class)
 						if(Class[key] === Function)
 							abstractMethods.push(key); 
@@ -76,16 +76,16 @@ var build = function(Class, extending, args, abstractMethods){
 			if(!isFunction) Class = instantiate(Class);
 
 			proto = isFunction ?
-				child.obj.prototype:
-				child.obj;
+				module.obj.prototype:
+				module.obj;
 
 			for(var key in proto) {
 			
-				if(child.abstract && proto[key] === Function && typeof Class[keys[k]] !== "function") {
+				if(module.abstract && proto[key] === Function && typeof Class[keys[k]] !== "function") {
 					abstractMethods.push(key);
 					Class[key] = proto[key];
 				}
-				else if(child.super && proto[key] !== Class[key]  && typeof proto[key] === "function" && typeof Class[key] === "function" && superTest.test(proto[key]))
+				else if(module.super && proto[key] !== Class[key]  && typeof proto[key] === "function" && typeof Class[key] === "function" && superTest.test(proto[key]))
 					Class[key] = attachSuper(proto[key], Class[key]);
 				else
 					Class[key] = proto[key];
@@ -93,21 +93,21 @@ var build = function(Class, extending, args, abstractMethods){
 				
 			
 			if(isFunction) {
-				child.obj.prototype = Class;
-				child.obj.prototype.constructor = child.obj;
-				instance = instantiate(child.obj, args);
-				child.obj.prototype = proto;
-				child.obj.prototype.constructor = child.obj;
+				module.obj.prototype = Class;
+				module.obj.prototype.constructor = module.obj;
+				instance = instantiate(module.obj, args);
+				module.obj.prototype = proto;
+				module.obj.prototype.constructor = module.obj;
 
-				if((child.super && superTest.test(child.obj)) || (child.abstract && abstractTest.test(child.obj))) {
+				if((module.super && superTest.test(module.obj)) || (module.abstract && abstractTest.test(module.obj))) {
 					keys = Object.getOwnPropertyNames(instance);
 					for(var k=0; k<keys.length; k++){
 						// test if abstract method
-						if(child.abstract && instance[keys[k]] === Function && typeof Class[keys[k]] !== "function") {
+						if(module.abstract && instance[keys[k]] === Function && typeof Class[keys[k]] !== "function") {
 							abstractMethods.push(keys[k]);
 						}
 						// test if _super has to be attached
-						else if(child.super && Class[keys[k]] !== instance[keys[k]]  && typeof instance[keys[k]] === "function" && typeof Class[keys[k]] === "function" && superTest.test(instance[keys[k]])) 
+						else if(module.super && Class[keys[k]] !== instance[keys[k]]  && typeof instance[keys[k]] === "function" && typeof Class[keys[k]] === "function" && superTest.test(instance[keys[k]])) 
 							instance[keys[k]] = attachSuper(instance[keys[k]], Class[keys[k]]);
 					}
 				}
@@ -118,104 +118,85 @@ var build = function(Class, extending, args, abstractMethods){
 	return Class;
 }
 
-var extendFactory = function(extending, child) {
+var addModule = function(modules, module) {
 	var key;
 
-	if(typeof child.obj === "function") {
-		for(key in child.obj) {
-			if(reserved.indexOf(key) < 0) {
+	if(typeof module.obj === "function") {
+		for(key in module.obj) {
+			if(key === "__instanceof") {
 				Executable[key]= typeof Executable[key] === "function" ?
-					attachSuper(child.obj[key], Executable[key]):
-					child.obj[key];
+					attachSuper(module.obj[key], Executable[key]):
+					module.obj[key];
 			}
-			else if(child.strObj !== strExecutable) {
-				throw("The property name '_instanceof' is reserved and can't be set as static property. (Sorry)");
+			else if(module.strObj !== strExecutable) {
+				throw("The property name '__instanceof' is reserved and can't be set as static property. (Sorry)");
 			}
 		}
 	}
-	extending.push(child);
+	modules.push(module);
 }
 
-var extractOptions = function(array) {
-	var options = {
-		deep : false,
-		super: false,
-		abstract :false
-	}
-	var objects = [];
-	var type;
-	for(var i=0; i < array.length; i++) {
-		type = typeof array[i];
-		if(type === "string") {
-			if(typeof options[array[i]] === "boolean") {
-				options[array[i]] = true;
-			}
-		}
+var createModules = function(modules, args) {
+	var type, isArray;
+	var options = Object.create(Factory.options);
+
+	for(var i=0; i < args.length; i++) {
+		type = typeof args[i];
+
+		
 		if(type === "object" || type === "function") {
-			objects.push(array[i]);
-		}
-	}
-	return {
-		options: options,
-		objects: objects
+			isArray = Object.prototype.toString.call(args[i]);
+			if(type === "function" || isArray !== "[object Array]") {
+				addModule( modules, { 
+					obj : args[i],
+					strObj : type === "function" ? ""+args[i] : "",
+					deep : options.deep,
+					super : options.super,
+					abstract : options.abstract
+				});
+			}
+			else if(i == 0) {
+				options = Object.create(defaultOptions);
+
+				for(var k=0; k < args[i].length; k++) {
+					if(typeof args[i][k] === "string") {
+						if(typeof options[args[i][k]] === "boolean") {
+							options[args[i][k]] = true;
+						}
+					}
+				}
+			}
+			else 
+				throw("Unexpected 'Array'! Arrays are only allowed as first parameter to set options.");
+		} 
+		else 
+			throw("Unexpected '"+typeof args[i]+"'! Only 'functions' and 'objects' can be used with the objectfactory.");
 	}
 }
 
 var Factory = function(){
-	var extending = [];
+	var modules = [];
 	var abstractMethods = [];
-	var type, deep, _super, abstract;
-	var children = arguments;
 
-	for(var i=0; i < children.length; i++) {
-		type = typeof children[i];
-		if(type === "object" || type === "function") {
-
-			if(Object.prototype.toString.call(children[i]) === "[object Array]") {
-				var info = extractOptions(children[i]);
-
-				if(i===0 && info.objects.length == 0 && children.length == 1) {
-					options = info.options;
-					return true;
-				}
-			}
-			else {
-				deep = options.deep;
-				_super = options.super;
-				abstract = options.abstract;
-			}
-
-			extendFactory( extending, { 
-				obj : children[i],
-				strObj : type === "function" ? ""+children[i] : "",
-				deep : deep,
-				super : _super,
-				abstract : abstract
-			});
-	
-		} 
-		else 
-			throw("Unexpected '"+typeof children[i]+"'! Only 'functions' and 'objects' can be used with the objectfactory.");
-	}
-
+	createModules(modules, arguments);
 
 	return function Executable(Class, args, absMethods){
-		// Define _instanceof function for every Executable that gets build.
-		Executable._instanceof = function(fn){
+		// Define __instanceof function for every Executable that gets build.
+		Executable.__instanceof = function(fn){
 			if((typeof fn === "function" && this instanceof fn) || Executable === fn) return true;
-			for(var i=0; i<extending.length; i++) {
-				if(typeof extending[i].obj._instanceof === "function" && extending[i].obj._instanceof(fn)) 
+			for(var i=0; i<modules.length; i++) {
+				if(typeof modules[i].obj._instanceof === "function" && modules[i].obj._instanceof(fn)) 
 					return true;
-				else if(extending[i].obj === fn) 
+				else if(modules[i].obj === fn) 
 					return true;
 			}
 			return false;
 		};
 
 		// If we're in the building process
-		if(this === Factory) return build(Class, extending, args, absMethods);
+		if(this === Factory) return build(Class, modules, args, absMethods);
 	
-		var instance = build(undefined, extending, arguments, abstractMethods);
+		var instance = build(undefined, modules, arguments, abstractMethods);
 		var construct;
 
 		// Check if all abstract Methods are implemented
@@ -224,21 +205,25 @@ var Factory = function(){
 				throw("Abstract method '"+abstractMethods[i]+"' needs to be defined.");
 
 		// Add substitution for native instanceof operator
-		if(typeof instance.instanceof === "undefined" || ""+instance.instanceof === ""+Executable._instanceof) 
-			instance.instanceof = Executable._instanceof;
+		if(typeof instance.instanceof === "undefined" || (typeof instance.instanceof === "function" && ""+instance.instanceof === str__instanceof)) 
+			instance.instanceof = Executable.__instanceof;
 		else 
-			instance._instanceof = Executable._instanceof;
+			instance._instanceof = Executable.__instanceof;
 
 		// Call consruct if available
 		if(instance.construct) 
 			construct = instance.construct.apply(instance, arguments);
 
-		// return instance or if construct() returned function or object, return that. (standard instanication behavior in JS)
+		// return instance or if construct() returned function or object, return that. (standard instantiation behavior in JS)
 		return typeof construct === "object" || typeof construct === "function" ?
 			construct : instance;
 	}
 }
+Factory.options = Object.create(defaultOptions);
+
 var strExecutable = ""+Factory();
+var str__instanceof = ""+Factory().__instanceof;
+
 
 if(typeof module === "object") module.exports = Factory;
 else window.objectfactory = Factory;
