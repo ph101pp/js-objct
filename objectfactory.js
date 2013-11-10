@@ -8,14 +8,17 @@
 (function(undefined){
 "use strict";
 
-var superTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
+var superTest = /xyz/.test(function(){xyz;}) ? /\bthis\._super\b/ : /.*/;
 var abstractTest = /xyz/.test(function(){xyz;}) ? /\bFunction\b/ : /.*/;
-var defaultReserved = "__instanceof";
 var instance = function(){};
 var defaultOptions = {
 	deep : false,
 	abstract : false,
 	super : false
+}
+var defaultReserved = {
+	_instanceof : "_instanceof",
+	_super : "_super"
 }
 
 var attachSuper = function(fn, _super) {
@@ -54,11 +57,73 @@ var instantiate = function(fn, args){
 		instance.prototype = fn;
 		f = new instance();
 	}
+	else throw("Unexpected '"+(typeof fn)+"'! Can't Instatiate '"+(typeof fn)+"'");
 	return f;	
 }
 
+var instantiateObject = function(Class, module, abstractMethods){
+	Class = instantiate(Class);
+	extend(Class, module.obj, module, abstractMethods);
+	return Class;
+}
+
+
+var instantiateFunction = function(Class, module, args, abstractMethods){
+	var proto = module.obj.prototype;
+	var _super = module.super && superTest.test(module.obj);
+	var abstract = module.abstract && abstractTest.test(module.obj);
+	var instance, keys;
+
+	extend(Class, proto, module, abstractMethods);
+
+	module.obj.prototype = Class;
+	module.obj.prototype.constructor = module.obj;
+	instance = instantiate(module.obj, args);
+	module.obj.prototype = proto;
+	module.obj.prototype.constructor = module.obj;
+
+	if(_super || abstract) {
+		keys = Object.getOwnPropertyNames(instance);
+		for(var k=0; k<keys.length; k++){
+			// test if abstract method
+			if(abstract && instance[keys[k]] === Function) {
+				abstractMethods.push(keys[k]);
+			}
+			// test if _super has to be attached
+			else if(_super && Class[keys[k]] !== instance[keys[k]]) { 
+				instance[keys[k]] = attachSuper(instance[keys[k]], Class[keys[k]]);
+			}
+		}
+	}
+	return instance;
+}
+
+var extend = function(target, source, module, abstractMethods) {
+	var nextTarget;
+	module = module || defaultOptions;
+
+	for(var k in source) {
+		if(module.deep && typeof source[k] === "object") {
+			nextTarget = typeof target[k] === "object" ? 
+				target[k] : {};
+			target[k] = extend(nextTarget, source[k], module, abstractMethods);
+		}
+		// test if abstract method
+		else if(module.abstract && source[k] === Function) {
+			abstractMethods.push([target, k]);
+			if(typeof target[k] !== "function") target[k] = source[k];
+		}
+		// test if _super has to be attached
+		else if(module.super && source[k] !== target[k])
+			target[k] = attachSuper(source[k], target[k]);
+		else
+			target[k] = source[k];
+	}
+	return target;
+}
+
 var build = function(Class, modules, args, abstractMethods){
-	var isFunction, proto, instance, keys, module;
+	var isFunction, module;
 
 	for(var i=0; i<modules.length; i++) {
 		module = modules[i];
@@ -70,54 +135,12 @@ var build = function(Class, modules, args, abstractMethods){
 			if(typeof Class === "undefined") {
 				Class = isFunction ?
 					instantiate(module.obj, args):
-					Object.create(module.obj); // Copy object
-				if(module.abstract)
-					for(var key in Class)
-						if(Class[key] === Function)
-							abstractMethods.push(key); 
+					extend({}, module.obj, module, abstractMethods);
 				continue;
 			}
-			if(!isFunction) Class = instantiate(Class);
-
-			proto = isFunction ?
-				module.obj.prototype:
-				module.obj;
-
-			for(var key in proto) {
-			
-				if(module.abstract && proto[key] === Function && typeof Class[keys[k]] !== "function") {
-					abstractMethods.push(key);
-					Class[key] = proto[key];
-				}
-				else if(module.super && proto[key] !== Class[key])
-					Class[key] = attachSuper(proto[key], Class[key]);
-				else
-					Class[key] = proto[key];
-			}
-				
-			
-			if(isFunction) {
-				module.obj.prototype = Class;
-				module.obj.prototype.constructor = module.obj;
-				instance = instantiate(module.obj, args);
-				module.obj.prototype = proto;
-				module.obj.prototype.constructor = module.obj;
-
-				if((module.super && superTest.test(module.obj)) || (module.abstract && abstractTest.test(module.obj))) {
-					keys = Object.getOwnPropertyNames(instance);
-					for(var k=0; k<keys.length; k++){
-						// test if abstract method
-						if(module.abstract && instance[keys[k]] === Function && typeof Class[keys[k]] !== "function") {
-							abstractMethods.push(keys[k]);
-						}
-						// test if _super has to be attached
-						else if(module.super && Class[keys[k]] !== instance[keys[k]]) { 
-							instance[keys[k]] = attachSuper(instance[keys[k]], Class[keys[k]]);
-						}
-					}
-				}
-				Class = instance;
-			}
+			Class = isFunction ? 
+				instantiateFunction(Class, module, args, abstractMethods):
+				instantiateObject(Class, module, abstractMethods);
 		}
 	}
 	return Class;
@@ -125,19 +148,19 @@ var build = function(Class, modules, args, abstractMethods){
 
 var Factory = function(){
 	var type, isArray, module, k;
-	var options = Object.create(Factory.options);
+	var options = extend({},Factory.options);
 	var modules = [];
 	var abstractMethods = [];
-	var reserved = Factory.reserved;  //save global reserved property name in local Factory
+	var _instanceof = Factory.reserved._instanceof;
 
 	var Executable = function Executable(Class, args, absMethods){
 		// Define instanceof function for every Executable that gets build.
-		Executable[reserved] = function(fn){
+		Executable[_instanceof] = function(fn){
 			if(typeof fn === "function" && this instanceof fn) return true;
 			if(Executable === fn) return true;
 
 			for(var i=0; i<modules.length; i++) {
-				if(modules[i].objStr === strExecutable && modules[i].obj[reserved](fn)) 
+				if(modules[i].strObj === strExecutable && modules[i].obj[_instanceof](fn)) 
 					return true;
 				else if(modules[i].obj === fn) 
 					return true;
@@ -149,19 +172,28 @@ var Factory = function(){
 		if(this === Factory) return build(Class, modules, args, absMethods);
 	
 		var instance = build(undefined, modules, arguments, abstractMethods);
-		var construct, returnType;
+		var construct, returnType, obj, name;
 
 		// Check if all abstract Methods are implemented
-		for(var i =0; i<abstractMethods.length; i++) 
-			if(instance[abstractMethods[i]] === Function) 
-				throw("Abstract method '"+abstractMethods[i]+"' needs to be defined.");
+		for(var i =0; i<abstractMethods.length; i++) {
+			if(typeof abstractMethods[i] === "object") {
+				obj = abstractMethods[i][0];
+				name = abstractMethods[i][1];
+			}
+			else {
+				obj = instance;
+				name = abstractMethods[i];
+			}
+			if(typeof obj[name] !== "function") 
+				throw("Abstract method '"+name+"' needs to be defined.");
+		}
 
 		// Add substitution for native instanceof operator
 		if(typeof instance === "undefined") instance = {};
-		if(typeof instance.instanceof === "undefined" || (typeof instance.instanceof === "function" && ""+instance.instanceof === str__instanceof)) 
-			instance.instanceof = Executable[reserved];
+		if(typeof instance.instanceof === "undefined" || (typeof instance.instanceof === "function" && ""+instance.instanceof === str_instanceof)) 
+			instance.instanceof = Executable[_instanceof];
 		else 
-			instance._instanceof = Executable[reserved];
+			instance._instanceof = Executable[_instanceof];
 
 		// Call construct if available
 		if(instance.construct) 
@@ -189,25 +221,22 @@ var Factory = function(){
 				}
 
 				if(typeof module.obj === "function") {
-					if(typeof module.obj[reserved] !== "undefined") {
+					if(typeof module.obj[_instanceof] !== "undefined") {
 						if(module.strObj === strExecutable) 
-							module.obj[reserved] = Executable[reserved];
+							module.obj[_instanceof] = Executable[_instanceof];
 						else 
-							throw("The property name '"+reserved+"' is reserved and can't be set as static property. Change this by defining objectfactory.reserved = 'newReservedName'");
+							throw("The property name '"+_instanceof+"' is reserved and can't be set as static property. Change this by defining objectfactory.reserved._instanceof = 'newReservedName'");
 					}
-					for(k in module.obj) {
-						if(options.super) {
-							Executable[k] = attachSuper(module.obj[k], Executable[k]);
-						}
-						else {
-							Executable[k] = module.obj[k];
-						}
-					}
+					extend(Executable, module.obj, {
+						deep:Factory.options.deep,
+						super:Factory.options.super,
+						abstract : false
+					});
 				}
 				modules.push(module);
 			}
 			else if(i == 0) {
-				options = Object.create(defaultOptions);
+				options = extend({}, defaultOptions);
 
 				for(var k=0; k < arguments[i].length; k++) {
 					if(typeof arguments[i][k] === "string") {
@@ -218,7 +247,7 @@ var Factory = function(){
 				}
 			}
 			else 
-				throw("Unexpected 'Array'! Arrays are only allowed as first parameter to set options. [deep, super, abstract]");
+				throw("Unexpected 'array'! Arrays are only allowed as first parameter to set options. [deep, super, abstract]");
 		} 
 		else 
 			throw("Unexpected '"+typeof arguments[i]+"'! Only 'functions' and 'objects' can be used with the objectfactory.");
@@ -226,12 +255,12 @@ var Factory = function(){
 
 	return Executable;
 }
-Factory.options = Object.create(defaultOptions);
+Factory.options = extend({}, defaultOptions);
 Factory.reserved = defaultReserved;
 
 var factory = Factory();
 var strExecutable = ""+factory;
-var str__instanceof = ""+factory.__instanceof;
+var str_instanceof = ""+factory[Factory.reserved._instanceof];
 
 
 if(typeof module === "object") module.exports = Factory;
