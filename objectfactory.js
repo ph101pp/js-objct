@@ -5,9 +5,11 @@
  *
  * The MIT Licence (http://opensource.org/licenses/MIT)
  */
+////////////////////////////////////////////////////////////////////////////////
 (function(undefined){
 "use strict";
 
+////////////////////////////////////////////////////////////////////////////////
 var superTest = /xyz/.test(function(){xyz;}) ? /\bthis\._super\b/ : /.*/;
 var abstractTest = /xyz/.test(function(){xyz;}) ? /\bFunction\b/ : /.*/;
 var instance = function(){};
@@ -20,7 +22,7 @@ var defaultReserved = {
 	_instanceof : "_instanceof",
 	_super : "_super"
 }
-
+////////////////////////////////////////////////////////////////////////////////
 var attachSuper = function(fn, _super) {
 	if(typeof fn !== "function" || !superTest.test(fn)) {
 		return fn;
@@ -34,7 +36,7 @@ var attachSuper = function(fn, _super) {
 		return ret;
 	}
 }
-
+////////////////////////////////////////////////////////////////////////////////
 var extend = function(target, source, module, abstractMethods) {
 	var nextTarget;
 	module = module || defaultOptions;
@@ -58,7 +60,7 @@ var extend = function(target, source, module, abstractMethods) {
 	}
 	return target;
 }
-
+////////////////////////////////////////////////////////////////////////////////
 var instantiate = function(fn, args){
 	var f;
 	if(typeof fn === "function") {
@@ -81,14 +83,13 @@ var instantiate = function(fn, args){
 	else throw("Unexpected '"+(typeof fn)+"'! Can't Instatiate '"+(typeof fn)+"'");
 	return f;	
 }
-
+////////////////////////////////////////////////////////////////////////////////
 // var instantiateObject = function(Class, module, abstractMethods){
 // 	Class = instantiate(Class);
 // 	extend(Class, module.obj, module, abstractMethods);
 // 	return Class;
 // }
-
-
+////////////////////////////////////////////////////////////////////////////////
 var instantiateFunction = function(Class, module, args, abstractMethods){
 	var proto = module.obj.prototype;
 	var _super = module.super && superTest.test(module.obj);
@@ -118,14 +119,14 @@ var instantiateFunction = function(Class, module, args, abstractMethods){
 	}
 	return instance;
 }
-
+////////////////////////////////////////////////////////////////////////////////
 var build = function(Class, modules, args, abstractMethods){
 	var isFunction, module;
 
 	for(var i=0; i<modules.length; i++) {
 		module = modules[i];
 		isFunction = typeof module.obj === "function";
-		if(isFunction && modules[i].strObj === strExecutable) {
+		if(isFunction && module.strObj === strExecutable) {
 			Class=module.obj.call(Factory, Class, args, abstractMethods);
 		}
 		else {
@@ -143,15 +144,16 @@ var build = function(Class, modules, args, abstractMethods){
 	}
 	return Class;
 }
-
+////////////////////////////////////////////////////////////////////////////////
 var Factory = function(){
 	var type, isArray, module, k;
 	var options = extend({},Factory.options);
 	var modules = [];
 	var abstractMethods = [];
 	var _instanceof = Factory.reserved._instanceof;
-
+	////////////////////////////////////////////////////////////////////////////
 	var Executable = function Executable(Class, args, absMethods){
+		////////////////////////////////////////////////////////////////////////
 		// Define instanceof function for every Executable that gets build.
 		Executable[_instanceof] = function(fn){
 			if(typeof fn === "function" && this instanceof fn) return true;
@@ -165,6 +167,7 @@ var Factory = function(){
 			}
 			return false;
 		};
+		////////////////////////////////////////////////////////////////////////
 
 		// If we're in the building process
 		if(this === Factory) return build(Class, modules, args, absMethods);
@@ -188,7 +191,11 @@ var Factory = function(){
 
 		// Add substitution for native instanceof operator
 		if(typeof instance === "undefined") instance = {};
-		if(typeof instance.instanceof === "undefined" || (typeof instance.instanceof === "function" && ""+instance.instanceof === strInstanceof)) 
+		if(	
+			typeof instance.instanceof === "undefined" || 
+			(typeof instance.instanceof === "function" &&	
+			""+instance.instanceof === strInstanceof)
+		) 
 			instance.instanceof = Executable[_instanceof];
 		else 
 			instance._instanceof = Executable[_instanceof];
@@ -203,6 +210,7 @@ var Factory = function(){
 		return returnType === "object" || returnType === "function" ?
 			construct : instance;
 	}
+	////////////////////////////////////////////////////////////////////////////
 	
 	for(var i=0; i < arguments.length; i++) {
 		type = typeof arguments[i];
@@ -255,6 +263,8 @@ var Factory = function(){
 
 	return Executable;
 }
+////////////////////////////////////////////////////////////////////////////////
+
 Factory.options = extend({}, defaultOptions);
 Factory.reserved = defaultReserved;
 
@@ -262,8 +272,8 @@ var factory = Factory();
 var strExecutable = ""+factory;
 var strInstanceof = ""+factory[Factory.reserved._instanceof];
 
-
 if(typeof module === "object") module.exports = Factory;
 else window.objectfactory = Factory;
 
+////////////////////////////////////////////////////////////////////////////////
 })();
