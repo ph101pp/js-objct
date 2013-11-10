@@ -22,20 +22,17 @@ var defaultReserved = {
 }
 
 var attachSuper = function(fn, _super) {
-	if(typeof fn !== "function" || typeof _super !== "function" || !superTest.test(fn)) {
+	if(typeof fn !== "function" || !superTest.test(fn)) {
 		return fn;
 	}
-	var attached = function() {
-		var tmp = this._super;
-		this._super = _super;
+
+	return function() {
+		var tmp = this[Factory.reserved._super];
+		this[Factory.reserved._super] = _super;
 		var ret = fn.apply(this, arguments); 
-		this._super = tmp;
+		this[Factory.reserved._super] = tmp;
 		return ret;
 	}
-	//prevent infinite recursion on _super() call in "last" super method.
-	if(typeof _super === "function" && _super != attached) 
-		_super=attachSuper(_super, undefined);
-	return attached;
 }
 
 var instantiate = function(fn, args){
