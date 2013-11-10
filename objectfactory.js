@@ -35,6 +35,30 @@ var attachSuper = function(fn, _super) {
 	}
 }
 
+var extend = function(target, source, module, abstractMethods) {
+	var nextTarget;
+	module = module || defaultOptions;
+
+	for(var k in source) {
+		if(module.deep && typeof source[k] === "object") {
+			nextTarget = typeof target[k] === "object" ? 
+				target[k] : {};
+			target[k] = extend(nextTarget, source[k], module, abstractMethods);
+		}
+		// test if abstract method
+		else if(module.abstract && source[k] === Function) {
+			abstractMethods.push([target, k]);
+			if(typeof target[k] !== "function") target[k] = source[k];
+		}
+		// test if _super has to be attached
+		else if(module.super && source[k] !== target[k])
+			target[k] = attachSuper(source[k], target[k]);
+		else
+			target[k] = source[k];
+	}
+	return target;
+}
+
 var instantiate = function(fn, args){
 	var f;
 	if(typeof fn === "function") {
@@ -58,11 +82,11 @@ var instantiate = function(fn, args){
 	return f;	
 }
 
-var instantiateObject = function(Class, module, abstractMethods){
-	Class = instantiate(Class);
-	extend(Class, module.obj, module, abstractMethods);
-	return Class;
-}
+// var instantiateObject = function(Class, module, abstractMethods){
+// 	Class = instantiate(Class);
+// 	extend(Class, module.obj, module, abstractMethods);
+// 	return Class;
+// }
 
 
 var instantiateFunction = function(Class, module, args, abstractMethods){
@@ -95,30 +119,6 @@ var instantiateFunction = function(Class, module, args, abstractMethods){
 	return instance;
 }
 
-var extend = function(target, source, module, abstractMethods) {
-	var nextTarget;
-	module = module || defaultOptions;
-
-	for(var k in source) {
-		if(module.deep && typeof source[k] === "object") {
-			nextTarget = typeof target[k] === "object" ? 
-				target[k] : {};
-			target[k] = extend(nextTarget, source[k], module, abstractMethods);
-		}
-		// test if abstract method
-		else if(module.abstract && source[k] === Function) {
-			abstractMethods.push([target, k]);
-			if(typeof target[k] !== "function") target[k] = source[k];
-		}
-		// test if _super has to be attached
-		else if(module.super && source[k] !== target[k])
-			target[k] = attachSuper(source[k], target[k]);
-		else
-			target[k] = source[k];
-	}
-	return target;
-}
-
 var build = function(Class, modules, args, abstractMethods){
 	var isFunction, module;
 
@@ -135,9 +135,10 @@ var build = function(Class, modules, args, abstractMethods){
 					extend({}, module.obj, module, abstractMethods);
 				continue;
 			}
+			Class = instantiate(Class);
 			Class = isFunction ? 
 				instantiateFunction(Class, module, args, abstractMethods):
-				instantiateObject(Class, module, abstractMethods);
+				extend(Class, module.obj, module, abstractMethods);
 		}
 	}
 	return Class;
@@ -187,7 +188,7 @@ var Factory = function(){
 
 		// Add substitution for native instanceof operator
 		if(typeof instance === "undefined") instance = {};
-		if(typeof instance.instanceof === "undefined" || (typeof instance.instanceof === "function" && ""+instance.instanceof === str_instanceof)) 
+		if(typeof instance.instanceof === "undefined" || (typeof instance.instanceof === "function" && ""+instance.instanceof === strInstanceof)) 
 			instance.instanceof = Executable[_instanceof];
 		else 
 			instance._instanceof = Executable[_instanceof];
@@ -222,7 +223,7 @@ var Factory = function(){
 						if(module.strObj === strExecutable) 
 							module.obj[_instanceof] = Executable[_instanceof];
 						else 
-							throw("The property name '"+_instanceof+"' is reserved and can't be set as static property. Change this by defining objectfactory.reserved._instanceof = 'newReservedName'");
+							throw("The property name '"+_instanceof+"' is reserved and can't be set as 'static' property. You may change this reserved name by defining objectfactory.reserved._instanceof = 'newReservedName' if you have to.");
 					}
 					extend(Executable, module.obj, {
 						deep:Factory.options.deep,
@@ -241,10 +242,12 @@ var Factory = function(){
 							options[arguments[i][k]] = true;
 						}
 					}
+					else 
+						throw("Unexpected 'array'! Arrays are only allowed as first parameter to set options and must only contain strings. ['deep', 'super', 'abstract']");
 				}
 			}
 			else 
-				throw("Unexpected 'array'! Arrays are only allowed as first parameter to set options. [deep, super, abstract]");
+				throw("Unexpected 'array'! Arrays are only allowed as first parameter to set options and must only contain strings. ['deep', 'super', 'abstract']");
 		} 
 		else 
 			throw("Unexpected '"+typeof arguments[i]+"'! Only 'functions' and 'objects' can be used with the objectfactory.");
@@ -257,9 +260,10 @@ Factory.reserved = defaultReserved;
 
 var factory = Factory();
 var strExecutable = ""+factory;
-var str_instanceof = ""+factory[Factory.reserved._instanceof];
+var strInstanceof = ""+factory[Factory.reserved._instanceof];
 
 
 if(typeof module === "object") module.exports = Factory;
 else window.objectfactory = Factory;
+
 })();
