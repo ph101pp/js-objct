@@ -73,8 +73,8 @@ var extendKey = function(target, source, k, module, abstractMethods) {
 var instantiate = function(fn, args){
 	var f;
 	if(typeof fn === "function") {
-		if(typeof Function.prototype.bind === "function") {
-			// Slightly slower but keeps Class names intact for the inspector.
+		if(Factory.debug && typeof Function.prototype.bind === "function") {
+			// Slightly slower but keeps names intact for the inspector.
             Array.prototype.unshift.call(args, null);
             f = new (Function.prototype.bind.apply(fn, args));
 		}
