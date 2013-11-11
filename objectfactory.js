@@ -37,28 +37,37 @@ var attachSuper = function(fn, _super) {
 	}
 }
 ////////////////////////////////////////////////////////////////////////////////
-var extend = function(target, source, module, abstractMethods) {
-	var nextTarget;
+var extend = function(target, source, module, abstractMethods, keys) {
 	module = module || defaultOptions;
 
-	for(var k in source) {
-		if(module.deep && typeof source[k] === "object") {
-			nextTarget = typeof target[k] === "object" ? 
-				target[k] : {};
-			target[k] = extend(nextTarget, source[k], module, abstractMethods);
-		}
-		// test if abstract method
-		else if(module.abstract && source[k] === Function) {
-			abstractMethods.push([target, k]);
-			if(typeof target[k] !== "function") target[k] = source[k];
-		}
-		// test if _super has to be attached
-		else if(module.super && source[k] !== target[k])
-			target[k] = attachSuper(source[k], target[k]);
-		else
-			target[k] = source[k];
+	if(typeof keys === "object") {
+		for(var k in keys)
+			extendKey(target, source, keys[k], module, abstractMethods);
 	}
+	else 
+		for(var k in source)
+			extendKey(target, source, k, module, abstractMethods);
+
 	return target;
+}
+////////////////////////////////////////////////////////////////////////////////
+var extendKey = function(target, source, k, module, abstractMethods) {
+	var nextTarget;
+	if(module.deep && typeof source[k] === "object") {
+		nextTarget = typeof target[k] === "object" ? 
+			target[k] : {};
+		target[k] = extend(nextTarget, source[k], module, abstractMethods);
+	}
+	// test if abstract method
+	else if(module.abstract && source[k] === Function) {
+		abstractMethods.push([target, k]);
+		if(typeof target[k] !== "function") target[k] = source[k];
+	}
+	// test if _super has to be attached
+	else if(module.super && source[k] !== target[k])
+		target[k] = attachSuper(source[k], target[k]);
+	else
+		target[k] = source[k];
 }
 ////////////////////////////////////////////////////////////////////////////////
 var instantiate = function(fn, args){
@@ -98,6 +107,11 @@ var instantiateFunction = function(Class, module, args, abstractMethods){
 
 	extend(Class, proto, module, abstractMethods);
 
+	if(!Factory.debug && !_super && !abstract) {
+		module.obj.apply(Class, args);
+		return Class;
+	}
+
 	module.obj.prototype = Class;
 	module.obj.prototype.constructor = module.obj;
 	instance = instantiate(module.obj, args);
@@ -105,17 +119,11 @@ var instantiateFunction = function(Class, module, args, abstractMethods){
 	module.obj.prototype.constructor = module.obj;
 
 	if(_super || abstract) {
-		keys = Object.getOwnPropertyNames(instance);
-		for(var k=0; k<keys.length; k++){
-			// test if abstract method
-			if(abstract && instance[keys[k]] === Function) {
-				abstractMethods.push(keys[k]);
-			}
-			// test if _super has to be attached
-			else if(_super && Class[keys[k]] !== instance[keys[k]]) { 
-				instance[keys[k]] = attachSuper(instance[keys[k]], Class[keys[k]]);
-			}
-		}
+		if(Factory.debug) Class = instantiate(Class);
+		keys = typeof Object.getOwnPropertyNames === "function" ?
+			Object.getOwnPropertyNames(instance):
+			undefined;
+		extend(Class, instance, module, abstractMethods, keys);
 	}
 	return instance;
 }
@@ -136,7 +144,7 @@ var build = function(Class, modules, args, abstractMethods){
 					extend({}, module.obj, module, abstractMethods);
 				continue;
 			}
-			Class = instantiate(Class);
+			if(Factory.debug) Class = instantiate(Class);
 			Class = isFunction ? 
 				instantiateFunction(Class, module, args, abstractMethods):
 				extend(Class, module.obj, module, abstractMethods);
@@ -267,6 +275,7 @@ var Factory = function(){
 
 Factory.options = extend({}, defaultOptions);
 Factory.reserved = defaultReserved;
+Factory.debug = true;
 
 var factory = Factory();
 var strExecutable = ""+factory;
