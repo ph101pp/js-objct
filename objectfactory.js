@@ -41,17 +41,19 @@ var extend = function(target, source, module, abstractMethods, keys) {
 	module = module || defaultOptions;
 
 	if(typeof keys === "object") {
-		for(var k in keys)
-			extendKey(target, source, keys[k], module, abstractMethods);
+		for(var k in keys) {
+			extendProperty(target, source, keys[k], module, abstractMethods);
+		}
 	}
-	else 
-		for(var k in source)
-			extendKey(target, source, k, module, abstractMethods);
-
+	else {
+		for(var k in source) {
+			extendProperty(target, source, k, module, abstractMethods);
+		}
+	}
 	return target;
 }
 ////////////////////////////////////////////////////////////////////////////////
-var extendKey = function(target, source, k, module, abstractMethods) {
+var extendProperty = function(target, source, k, module, abstractMethods) {
 	var nextTarget;
 	if(module.deep && typeof source[k] === "object") {
 		nextTarget = typeof target[k] === "object" ? 
@@ -107,7 +109,7 @@ var instantiateFunction = function(Class, module, args, abstractMethods){
 
 	extend(Class, proto, module, abstractMethods);
 
-	if(!Factory.debug && !_super && !abstract) {
+	if(!Factory.debug && !_super && !abstract && !module.deep) {
 		module.obj.apply(Class, args);
 		return Class;
 	}
@@ -118,14 +120,14 @@ var instantiateFunction = function(Class, module, args, abstractMethods){
 	module.obj.prototype = proto;
 	module.obj.prototype.constructor = module.obj;
 
-	if(_super || abstract) {
+	if(_super || abstract || module.deep) {
 		if(Factory.debug) Class = instantiate(Class);
 		keys = typeof Object.getOwnPropertyNames === "function" ?
 			Object.getOwnPropertyNames(instance):
 			undefined;
 		extend(Class, instance, module, abstractMethods, keys);
 	}
-	return instance;
+	return Class;
 }
 ////////////////////////////////////////////////////////////////////////////////
 var build = function(Class, modules, args, abstractMethods){
