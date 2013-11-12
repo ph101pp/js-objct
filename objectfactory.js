@@ -131,10 +131,13 @@ var build = function(Class, modules, args, abstractMethods){
 		}
 		else {
 			if(typeof Class === "undefined") {
-				Class = isFunction ?
-					instantiate(module.obj, args):
-					extend({}, module.obj, module, abstractMethods);
-				continue;
+				if(!module.abstract) {
+					Class = isFunction ?
+						instantiate(module.obj, args):
+						extend({}, module.obj, module, abstractMethods);
+					continue;
+				}
+				Class={};
 			}
 			if(Factory.debug) Class = instantiate(Class);
 			Class = isFunction ? 
