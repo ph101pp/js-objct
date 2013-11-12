@@ -107,7 +107,7 @@ var instantiateFunction = function(Class, module, args, abstractMethods){
 	var abstract = module.abstract && abstractTest.test(module.obj);
 	var instance, keys;
 
-	extend(Class, proto, module, abstractMethods);
+	Class = extend(Class, proto, module, abstractMethods);
 
 	if(!Factory.debug && !_super && !abstract && !module.deep) {
 		module.obj.apply(Class, args);
@@ -125,9 +125,9 @@ var instantiateFunction = function(Class, module, args, abstractMethods){
 		keys = typeof Object.getOwnPropertyNames === "function" ?
 			Object.getOwnPropertyNames(instance):
 			undefined;
-		extend(Class, instance, module, abstractMethods, keys);
+		instance = extend(Class, instance, module, abstractMethods, keys);
 	}
-	return Class;
+	return instance;
 }
 ////////////////////////////////////////////////////////////////////////////////
 var build = function(Class, modules, args, abstractMethods){
@@ -157,7 +157,7 @@ var build = function(Class, modules, args, abstractMethods){
 ////////////////////////////////////////////////////////////////////////////////
 var Factory = function(){
 	var type, isArray, module, k;
-	var options = extend({},Factory.options);
+	var options = extend({}, Factory.options);
 	var modules = [];
 	var abstractMethods = [];
 	var _instanceof = Factory.reserved._instanceof;
@@ -228,13 +228,10 @@ var Factory = function(){
 		if(type === "object" || type === "function") {
 			isArray = Object.prototype.toString.call(arguments[i]);
 			if(type === "function" || isArray !== "[object Array]") {
-				module = { 
+				module = extend(extend({}, options), { 
 					obj : arguments[i],
 					strObj : type === "function" ? ""+arguments[i] : "",
-					deep : options.deep,
-					super : options.super,
-					abstract : options.abstract
-				}
+				});
 
 				if(typeof module.obj === "function") {
 					if(typeof module.obj[_instanceof] !== "undefined") {
@@ -244,8 +241,8 @@ var Factory = function(){
 							throw("The property name '"+_instanceof+"' is reserved and can't be set as 'static' property. You may change this reserved name by defining objectfactory.reserved._instanceof = 'newReservedName' if you have to.");
 					}
 					extend(Executable, module.obj, {
-						deep:Factory.options.deep,
-						super:Factory.options.super,
+						deep:options.deep,
+						super:options.super,
 						abstract : false
 					});
 				}
