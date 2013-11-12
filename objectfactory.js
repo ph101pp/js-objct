@@ -18,10 +18,6 @@ var defaultOptions = {
 	abstract : false,
 	super : false
 }
-var defaultReserved = {
-	_instanceof : "_instanceof",
-	_super : "_super"
-}
 ////////////////////////////////////////////////////////////////////////////////
 var attachSuper = function(fn, _super) {
 	if(typeof fn !== "function" || !superTest.test(fn)) {
@@ -29,10 +25,10 @@ var attachSuper = function(fn, _super) {
 	}
 
 	return function() {
-		var tmp = this[Factory.reserved._super];
-		this[Factory.reserved._super] = _super;
+		var tmp = this._super;
+		this._super = _super;
 		var ret = fn.apply(this, arguments); 
-		this[Factory.reserved._super] = tmp;
+		this._super = tmp;
 		return ret;
 	}
 }
@@ -137,7 +133,7 @@ var build = function(Class, modules, args, abstractMethods){
 		module = modules[i];
 		isFunction = typeof module.obj === "function";
 		if(isFunction && module.strObj === strExecutable) {
-			Class=module.obj.call(Factory, Class, args, abstractMethods);
+			Class=module.obj.call(Factory, Class, args, abstractMethods, module);
 		}
 		else {
 			if(typeof Class === "undefined") {
@@ -160,24 +156,11 @@ var Factory = function(){
 	var options = extend({}, Factory.options);
 	var modules = [];
 	var abstractMethods = [];
-	var _instanceof = Factory.reserved._instanceof;
 	////////////////////////////////////////////////////////////////////////////
-	var Executable = function Executable(Class, args, absMethods){
-		////////////////////////////////////////////////////////////////////////
+	var Executable = function Executable(Class, args, absMethods, module){
 		// Define instanceof function for every Executable that gets build.
-		Executable[_instanceof] = function(fn){
-			if(typeof fn === "function" && this instanceof fn) return true;
-			if(Executable === fn) return true;
-
-			for(var i=0; i<modules.length; i++) {
-				if(modules[i].strObj === strExecutable && modules[i].obj[_instanceof](fn)) 
-					return true;
-				else if(modules[i].obj === fn) 
-					return true;
-			}
-			return false;
-		};
-		////////////////////////////////////////////////////////////////////////
+		module = module || {};
+		module.instanceof = _instanceof;
 
 		// If we're in the building process
 		if(this === Factory) return build(Class, modules, args, absMethods);
@@ -201,14 +184,15 @@ var Factory = function(){
 
 		// Add substitution for native instanceof operator
 		if(typeof instance === "undefined") instance = {};
-		if(	
-			typeof instance.instanceof === "undefined" || 
+		if(	typeof instance.instanceof === "undefined" || 
 			(typeof instance.instanceof === "function" &&	
 			""+instance.instanceof === strInstanceof)
-		) 
-			instance.instanceof = Executable[_instanceof];
-		else 
-			instance._instanceof = Executable[_instanceof];
+		) {
+			instance.instanceof = module.instanceof;
+		}
+		else {
+			instance._instanceof = module.instanceof;
+		}
 
 		// Call construct if available
 		if(instance.construct) 
@@ -221,7 +205,21 @@ var Factory = function(){
 			construct : instance;
 	}
 	////////////////////////////////////////////////////////////////////////////
-	
+	var _instanceof = function(fn){
+		if(typeof fn === "function" && this instanceof fn) return true;
+		if(Executable === fn) return true;
+
+		for(var i=0; i<modules.length; i++) {
+			if(modules[i].strObj === strExecutable && modules[i].instanceof(fn)) 
+				return true;
+			else if(modules[i].obj === fn) 
+				return true;
+		}
+		return false;
+	}
+	var strInstanceof = ""+_instanceof;
+	////////////////////////////////////////////////////////////////////////////
+
 	for(var i=0; i < arguments.length; i++) {
 		type = typeof arguments[i];
 		
@@ -231,15 +229,10 @@ var Factory = function(){
 				module = extend(extend({}, options), { 
 					obj : arguments[i],
 					strObj : type === "function" ? ""+arguments[i] : "",
+					instanceof : instance
 				});
 
 				if(typeof module.obj === "function") {
-					if(typeof module.obj[_instanceof] !== "undefined") {
-						if(module.strObj === strExecutable) 
-							module.obj[_instanceof] = Executable[_instanceof];
-						else 
-							throw("The property name '"+_instanceof+"' is reserved and can't be set as 'static' property. You may change this reserved name by defining objectfactory.reserved._instanceof = 'newReservedName' if you have to.");
-					}
 					extend(Executable, module.obj, {
 						deep:options.deep,
 						super:options.super,
@@ -273,12 +266,9 @@ var Factory = function(){
 ////////////////////////////////////////////////////////////////////////////////
 
 Factory.options = extend({}, defaultOptions);
-Factory.reserved = defaultReserved;
 Factory.debug = true;
 
-var factory = Factory();
-var strExecutable = ""+factory;
-var strInstanceof = ""+factory[Factory.reserved._instanceof];
+var strExecutable = ""+Factory();
 
 if(typeof module === "object") module.exports = Factory;
 else window.objectfactory = Factory;
