@@ -91,12 +91,6 @@ var instantiate = function(fn, args){
 	return f;	
 }
 ////////////////////////////////////////////////////////////////////////////////
-// var instantiateObject = function(Class, module, abstractMethods){
-// 	Class = instantiate(Class);
-// 	extend(Class, module.obj, module, abstractMethods);
-// 	return Class;
-// }
-////////////////////////////////////////////////////////////////////////////////
 var instantiateFunction = function(Class, module, args, abstractMethods){
 	var proto = module.obj.prototype;
 	var _super = module.super && superTest.test(module.obj);
@@ -156,6 +150,7 @@ var Factory = function(){
 	var options = extend({}, Factory.options);
 	var modules = [];
 	var abstractMethods = [];
+
 	////////////////////////////////////////////////////////////////////////////
 	var Executable = function Executable(Class, args, absMethods, module){
 		// Define instanceof function for every Executable that gets build.
@@ -184,10 +179,7 @@ var Factory = function(){
 
 		// Add substitution for native instanceof operator
 		if(typeof instance === "undefined") instance = {};
-		if(	typeof instance.instanceof === "undefined" || 
-			(typeof instance.instanceof === "function" &&	
-			""+instance.instanceof === strInstanceof)
-		) {
+		if(	typeof instance.instanceof === "undefined" || (typeof instance.instanceof === "function" &&	""+instance.instanceof === strInstanceof)) {
 			instance.instanceof = module.instanceof;
 		}
 		else {
@@ -226,22 +218,23 @@ var Factory = function(){
 		if(type === "object" || type === "function") {
 			isArray = Object.prototype.toString.call(arguments[i]);
 			if(type === "function" || isArray !== "[object Array]") {
-				module = extend(extend({}, options), { 
+
+				modules.push(extend(extend({}, options), { 
 					obj : arguments[i],
 					strObj : type === "function" ? ""+arguments[i] : "",
 					instanceof : instance
-				});
+				}));
 
-				if(typeof module.obj === "function") {
-					extend(Executable, module.obj, {
+				if(type === "function") {
+					extend(Executable, arguments[i], {
 						deep:options.deep,
 						super:options.super,
 						abstract : false
 					});
 				}
-				modules.push(module);
+
 			}
-			else if(i == 0) {
+			else if(i === 0) {
 				options = extend({}, defaultOptions);
 
 				for(var k=0; k < arguments[i].length; k++) {
@@ -250,15 +243,12 @@ var Factory = function(){
 							options[arguments[i][k]] = true;
 						}
 					}
-					else 
-						throw("Unexpected 'array'! Arrays are only allowed as first parameter to set options and must only contain strings. ['deep', 'super', 'abstract']");
+					else throw("Unexpected 'array'! Arrays are only allowed as first parameter to set options and must only contain strings. ['deep', 'super', 'abstract']");
 				}
 			}
-			else 
-				throw("Unexpected 'array'! Arrays are only allowed as first parameter to set options and must only contain strings. ['deep', 'super', 'abstract']");
+			else throw("Unexpected 'array'! Arrays are only allowed as first parameter to set options and must only contain strings. ['deep', 'super', 'abstract']");
 		} 
-		else 
-			throw("Unexpected '"+typeof arguments[i]+"'! Only 'functions' and 'objects' can be used with the objectfactory.");
+		else throw("Unexpected '"+typeof arguments[i]+"'! Only 'functions' and 'objects' can be used with the objectfactory.");
 	}	
 
 	return Executable;
