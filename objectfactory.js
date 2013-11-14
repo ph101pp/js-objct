@@ -83,11 +83,10 @@ var instantiate = function(fn, args){
 			fn.apply(f, args);
 		}
 	}
-	else if(typeof fn === "object") {
+	else {
 		instance.prototype = fn;
 		f = new instance();
 	}
-	else throw("Unexpected '"+(typeof fn)+"'! Can't Instatiate '"+(typeof fn)+"'");
 	return f;	
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -130,15 +129,6 @@ var build = function(Class, modules, args, abstractMethods){
 			Class=module.obj.call(Factory, Class, args, abstractMethods, module);
 		}
 		else {
-			if(typeof Class === "undefined") {
-				if(!module.abstract) {
-					Class = isFunction ?
-						instantiate(module.obj, args):
-						extend({}, module.obj, module, abstractMethods);
-					continue;
-				}
-				Class={};
-			}
 			if(Factory.debug) Class = instantiate(Class);
 			Class = isFunction ? 
 				instantiateFunction(Class, module, args, abstractMethods):
@@ -156,14 +146,18 @@ var Factory = function(){
 
 	////////////////////////////////////////////////////////////////////////////
 	var Executable = function Executable(Class, args, absMethods, module){
-		// Define instanceof function for every Executable that gets build.
-		module = module || {};
-		module.instanceof = _instanceof;
 
 		// If we're in the building process
-		if(this === Factory) return build(Class, modules, args, absMethods);
-	
-		var instance = build(undefined, modules, arguments, abstractMethods);
+		if(this === Factory) {
+			// Define instanceof function for every Executable that gets build.
+			module = module || {};
+			module.instanceof = _instanceof;
+			return build(Class, modules, args, absMethods);
+		}
+
+		// Start building process
+		var newClass = {instanceof : _instanceof};
+		var instance = build(newClass, modules, arguments, abstractMethods);
 		var construct, returnType, obj, name;
 
 		// Check if all abstract Methods are implemented
@@ -178,15 +172,6 @@ var Factory = function(){
 			}
 			if(typeof obj[name] !== "function") 
 				throw("Abstract method '"+name+"' needs to be defined.");
-		}
-
-		// Add substitution for native instanceof operator
-		if(typeof instance === "undefined") instance = {};
-		if(	typeof instance.instanceof === "undefined" || (typeof instance.instanceof === "function" &&	""+instance.instanceof === strInstanceof)) {
-			instance.instanceof = module.instanceof;
-		}
-		else {
-			instance._instanceof = module.instanceof;
 		}
 
 		// Call construct if available
