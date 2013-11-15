@@ -33,32 +33,49 @@ var attachSuper = function(fn, _super) {
 	}
 }
 ////////////////////////////////////////////////////////////////////////////////
-var extend = function(target, source, module, abstractMethods, keys) {
+var checkAbstractMethods = function(instance, abstractMethods){
+	var test, path, fn;
+	for(var i=0; i<abstractMethods.length; i++){
+		try{
+			test = instance;
+			path = abstractMethods[i].split(".");
+			for(var k =0; k<path.length-1; k++) test = test[path[k]];
+			fn = test[path[path.length-1]];
+			if(typeof fn !== "function" || fn === Function) throw("");		
+		} 
+		catch(e){
+			throw("Abstract method '"+abstractMethods[i]+"()' needs to be defined.");
+		}
+	}
+}
+////////////////////////////////////////////////////////////////////////////////
+var extend = function(target, source, module, abstractMethods, keys, abstractPath) {
 	module = module || defaultOptions;
 
 	if(typeof keys === "object") {
 		for(var k in keys) {
-			extendProperty(target, source, keys[k], module, abstractMethods);
+			extendProperty(target, source, keys[k], module, abstractMethods, abstractPath);
 		}
 	}
 	else {
 		for(var k in source) {
-			extendProperty(target, source, k, module, abstractMethods);
+			extendProperty(target, source, k, module, abstractMethods, abstractPath);
 		}
 	}
 	return target;
 }
 ////////////////////////////////////////////////////////////////////////////////
-var extendProperty = function(target, source, k, module, abstractMethods) {
+var extendProperty = function(target, source, k, module, abstractMethods, abstractPath) {
 	var nextTarget;
+	abstractPath = abstractPath || "";
 	if(module.deep && typeof source[k] === "object") {
 		nextTarget = typeof target[k] === "object" ? 
 			target[k] : {};
-		target[k] = extend(nextTarget, source[k], module, abstractMethods);
+		target[k] = extend(nextTarget, source[k], module, abstractMethods, undefined, abstractPath+k+".");
 	}
 	// test if abstract method
 	else if(module.abstract && source[k] === Function) {
-		abstractMethods.push([target, k]);
+		abstractMethods.push(abstractPath+k);
 		if(typeof target[k] !== "function") target[k] = source[k];
 	}
 	// test if _super has to be attached
@@ -139,40 +156,27 @@ var build = function(Class, modules, args, abstractMethods){
 }
 ////////////////////////////////////////////////////////////////////////////////
 var Factory = function(){
-	var type, isArray, module, k;
 	var options = extend({}, Factory.options);
 	var modules = [];
-	var abstractMethods = [];
 
 	////////////////////////////////////////////////////////////////////////////
-	var Executable = function Executable(Class, args, absMethods, module){
+	var Executable = function Executable(Class, args, abstractMethods, module){
 
 		// If we're in the building process
 		if(this === Factory) {
 			// Define instanceof function for every Executable that gets build.
-			module = module || {};
 			module.instanceof = _instanceof;
-			return build(Class, modules, args, absMethods);
-		}
+			return build(Class, modules, args, abstractMethods);
+		} 
 
 		// Start building process
+		abstractMethods = [];
 		var newClass = {instanceof : _instanceof};
 		var instance = build(newClass, modules, arguments, abstractMethods);
 		var construct, returnType, obj, name;
 
 		// Check if all abstract Methods are implemented
-		for(var i =0; i<abstractMethods.length; i++) {
-			if(typeof abstractMethods[i] === "object") {
-				obj = abstractMethods[i][0];
-				name = abstractMethods[i][1];
-			}
-			else {
-				obj = instance;
-				name = abstractMethods[i];
-			}
-			if(typeof obj[name] !== "function") 
-				throw("Abstract method '"+name+"' needs to be defined.");
-		}
+		checkAbstractMethods(instance, abstractMethods);
 
 		// Call construct if available
 		if(instance.construct) 
@@ -197,8 +201,9 @@ var Factory = function(){
 		}
 		return false;
 	}
-	var strInstanceof = ""+_instanceof;
 	////////////////////////////////////////////////////////////////////////////
+	var type, isArray, module;
+
 
 	for(var i=0; i < arguments.length; i++) {
 		type = typeof arguments[i];
