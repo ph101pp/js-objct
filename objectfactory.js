@@ -19,6 +19,24 @@ var defaultOptions = {
 	super : false
 }
 ////////////////////////////////////////////////////////////////////////////////
+// isArray fallback for ie<9
+var strArray = Array.toString();
+var isArray = Array.isArray || function (obj) {
+	return 
+		(typeof obj == "object" 
+		&& Object.prototype.toString.call(obj) === "[object Array]")
+		|| ("constructor" in obj && String(obj.constructor) === strArray);
+}
+////////////////////////////////////////////////////////////////////////////////
+var exception = function(type, value) {
+	var exceptions = {
+		unexpected : "Unexpected '"+value+"'! Only 'functions' and 'objects' can be used with the objectfactory.",
+		unexpectedArray : "Unexpected 'array'! Arrays are only allowed as first parameter to set options and must only contain strings. ['deep', 'super', 'abstract']",
+		abstract : "Abstract method '"+value+"' needs to be defined."
+	};
+	throw("objectFactory: "+exception[type]);
+}
+////////////////////////////////////////////////////////////////////////////////
 var attachSuper = function(fn, _super) {
 	if(typeof fn !== "function" || !superTest.test(fn)) {
 		return fn;
@@ -44,38 +62,38 @@ var checkAbstractMethods = function(instance, abstractMethods){
 			if(typeof fn !== "function" || fn === Function) throw("");		
 		} 
 		catch(e){
-			throw("Abstract method '"+abstractMethods[i]+"()' needs to be defined.");
+			exception("abstract", abstractMethods[i]+"()");
 		}
 	}
 }
 ////////////////////////////////////////////////////////////////////////////////
-var extend = function(target, source, module, abstractMethods, keys, abstractPath) {
+var extend = function(target, source, module, abstractMethods, keys, path) {
 	module = module || defaultOptions;
 
 	if(typeof keys === "object") {
 		for(var k in keys) {
-			extendProperty(target, source, keys[k], module, abstractMethods, abstractPath);
+			extendProperty(target, source, keys[k], module, abstractMethods, path);
 		}
 	}
 	else {
 		for(var k in source) {
-			extendProperty(target, source, k, module, abstractMethods, abstractPath);
+			extendProperty(target, source, k, module, abstractMethods, path);
 		}
 	}
 	return target;
 }
 ////////////////////////////////////////////////////////////////////////////////
-var extendProperty = function(target, source, k, module, abstractMethods, abstractPath) {
+var extendProperty = function(target, source, k, module, abstractMethods, path) {
 	var nextTarget;
-	abstractPath = abstractPath || "";
-	if(module.deep && typeof source[k] === "object") {
-		nextTarget = typeof target[k] === "object" ? 
+	path = path || "";
+	if(module.deep && typeof source[k] === "object" && !isArray(source[k])) {
+		nextTarget = typeof target[k] === "object" && !isArray(target[k]) ? 
 			target[k] : {};
-		target[k] = extend(nextTarget, source[k], module, abstractMethods, undefined, abstractPath+k+".");
+		target[k] = extend(nextTarget, source[k], module, abstractMethods, undefined, path+k+".");
 	}
 	// test if abstract method
 	else if(module.abstract && source[k] === Function) {
-		abstractMethods.push(abstractPath+k);
+		abstractMethods.push(path+k);
 		if(typeof target[k] !== "function") target[k] = source[k];
 	}
 	// test if _super has to be attached
@@ -156,7 +174,7 @@ var build = function(Class, modules, args, abstractMethods){
 }
 ////////////////////////////////////////////////////////////////////////////////
 var Factory = function(){
-	var options = extend({}, Factory.options);
+	var options = instantiate(Factory.options);
 	var modules = [];
 
 	////////////////////////////////////////////////////////////////////////////
@@ -170,9 +188,9 @@ var Factory = function(){
 		} 
 
 		// Start building process
-		abstractMethods = [];
-		var newClass = {instanceof : _instanceof};
-		var instance = build(newClass, modules, arguments, abstractMethods);
+		var abstractMethods = [];
+		var newObject = {instanceof : _instanceof};
+		var instance = build(newObject, modules, arguments, abstractMethods);
 		var construct, returnType, obj, name;
 
 		// Check if all abstract Methods are implemented
@@ -202,17 +220,28 @@ var Factory = function(){
 		return false;
 	}
 	////////////////////////////////////////////////////////////////////////////
-	var type, isArray, module;
+	var type, i=0;
+	// extract options
+	if(isArray(arguments[0])) {
+		options = instantiate(defaultOptions);
+		i++;
 
-
-	for(var i=0; i < arguments.length; i++) {
+		for(var k=0; k < arguments[0].length; k++) {
+			if(typeof arguments[0][k] === "string") {
+				if(typeof options[arguments[0][k]] === "boolean"){
+					options[arguments[0][k]] = true;
+				}
+			}
+			else exception("unexpectedArray");
+		}
+	}
+	//setup modules
+	for(; i < arguments.length; i++) {
 		type = typeof arguments[i];
 		
 		if(type === "object" || type === "function") {
-			isArray = Object.prototype.toString.call(arguments[i]);
-			if(type === "function" || isArray !== "[object Array]") {
-
-				modules.push(extend(extend({}, options), { 
+			if(!isArray(arguments[i])){
+				modules.push(extend(instantiate(options), { 
 					obj : arguments[i],
 					strObj : type === "function" ? ""+arguments[i] : "",
 					instanceof : instance
@@ -225,30 +254,16 @@ var Factory = function(){
 						abstract : false
 					});
 				}
-
 			}
-			else if(i === 0) {
-				options = extend({}, defaultOptions);
-
-				for(var k=0; k < arguments[i].length; k++) {
-					if(typeof arguments[i][k] === "string") {
-						if(typeof options[arguments[i][k]] === "boolean") {
-							options[arguments[i][k]] = true;
-						}
-					}
-					else throw("Unexpected 'array'! Arrays are only allowed as first parameter to set options and must only contain strings. ['deep', 'super', 'abstract']");
-				}
-			}
-			else throw("Unexpected 'array'! Arrays are only allowed as first parameter to set options and must only contain strings. ['deep', 'super', 'abstract']");
+			else exception("unexpectedArray");
 		} 
-		else throw("Unexpected '"+typeof arguments[i]+"'! Only 'functions' and 'objects' can be used with the objectfactory.");
+		else exception("unexpected", typeof arguments[i]);
 	}	
-
 	return Executable;
 }
 ////////////////////////////////////////////////////////////////////////////////
 
-Factory.options = extend({}, defaultOptions);
+Factory.options = instantiate(defaultOptions);
 Factory.debug = true;
 
 var strExecutable = ""+Factory();
