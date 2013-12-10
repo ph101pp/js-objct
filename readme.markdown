@@ -1,4 +1,4 @@
-#JS objectfactory
+#objectfactory
 
 A modular JavaScript inheritance library that works nicely with browserify, CommonJS or just vanilla JavaScript.
 
