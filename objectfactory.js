@@ -34,7 +34,7 @@ var exception = function(type, value) {
 		unexpectedArray : "Unexpected 'array'! Arrays are only allowed as first parameter to set options and must only contain strings. ['deep', 'super', 'abstract']",
 		abstract : "Abstract method '"+value+"' needs to be defined."
 	};
-	throw("objectFactory: "+exception[type]);
+	throw("objectfactory: "+exceptions[type]);
 }
 ////////////////////////////////////////////////////////////////////////////////
 var attachSuper = function(fn, _super) {
@@ -173,8 +173,10 @@ var build = function(Class, modules, args, abstractMethods){
 }
 ////////////////////////////////////////////////////////////////////////////////
 var Factory = function(){
-	var options = instantiate(Factory.options);
+	var options = instantiate(defaultOptions);
 	var modules = [];
+	var type=typeof arguments[0];
+	var i=1;
 
 	////////////////////////////////////////////////////////////////////////////
 	var Executable = function Executable(Class, args, abstractMethods, module){
@@ -219,12 +221,9 @@ var Factory = function(){
 		return false;
 	}
 	////////////////////////////////////////////////////////////////////////////
-	var type, i=0;
+
 	// extract options
 	if(isArray(arguments[0])) {
-		options = instantiate(defaultOptions);
-		i++;
-
 		for(var k=0; k < arguments[0].length; k++) {
 			if(typeof arguments[0][k] === "string") {
 				if(typeof options[arguments[0][k]] === "boolean"){
@@ -234,6 +233,14 @@ var Factory = function(){
 			else exception("unexpectedArray");
 		}
 	}
+	else if(type === "string" && typeof options[arguments[0]] === "boolean") {
+		options[arguments[0]] = true;
+	}
+	else if(type === "boolean") {
+		options["deep"] = arguments[0];
+	}
+	else i=0;
+
 	//setup modules
 	for(; i < arguments.length; i++) {
 		type = typeof arguments[i];
@@ -256,14 +263,12 @@ var Factory = function(){
 			}
 			else exception("unexpectedArray");
 		} 
-		else exception("unexpected", typeof arguments[i]);
+		else exception("unexpected", type);
 	}	
 	return Executable;
 }
 ////////////////////////////////////////////////////////////////////////////////
-
-Factory.options = instantiate(defaultOptions);
-Factory.debug = true;
+Factory.debug = false;
 
 var strExecutable = ""+Factory();
 
