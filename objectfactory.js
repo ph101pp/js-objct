@@ -84,12 +84,11 @@ var extend = function(target, source, module, abstractMethods, keys, path) {
 }
 ////////////////////////////////////////////////////////////////////////////////
 var extendProperty = function(target, source, k, module, abstractMethods, path) {
-	var nextTarget;
+	var newTarget;
 	path = path || "";
-	if(module.deep && typeof source[k] === "object" && !isArray(source[k])) {
-		nextTarget = typeof target[k] === "object" && !isArray(target[k]) ? 
-			target[k] : {};
-		target[k] = extend(nextTarget, source[k], module, abstractMethods, undefined, path+k+".");
+	if(module.deep && typeof source[k] === "object") {
+		newTarget = isArray(source[k]) ? [] : {};
+		target[k] = extend(newTarget, source[k], module, abstractMethods, undefined, path+k+".");
 	}
 	// test if abstract method
 	else if(module.abstract && source[k] === Function) {
