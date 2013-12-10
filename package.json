@@ -1,8 +1,8 @@
 {
   "name": "objectfactory",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "Philipp Adrian <hello@philippadrian.com>",
-  "description": "A modular JavaScript inheritance library that supports private closures and abstract classes.",
+  "description": "A modular JavaScript inheritance library that works nicely with browserify, CommonJS or just vanilla JavaScript.",
   "main":"objectfactory.js",
   "repository": {
     "type": "git",
@@ -27,7 +27,8 @@
     "javascript",
     "js",
     "method",
-    "function"
+    "function",
+    "factory"
   ],
   "license": "MIT"
 }
