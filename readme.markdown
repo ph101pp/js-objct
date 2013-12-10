@@ -6,714 +6,426 @@ A modular JavaScript inheritance library that works nicely with browserify, Comm
 
 __Keyfeatures:__
 
-* Multiple inheritance. Objects can be modular assembled for each new class.
-* Private, privileged and public methods. Closures are preserved and kept separated for each instance.
-* factory objects can be extended and used with the objectfactory.
-* Easy definable constructor function
-* Overwritten methods can be accessed with the _super keyword.
-* Possibility to define abstract classes and methods
-* "Static" object methods are preserved and passed along.
-* Very light weight.
+* "Multiple inheritance". Objects can be modular assembled for each object.
+* Closures are preserved. Private, privileged and public method definitions work as usual.
+* Factory objects can be extended and used with the objectfactory.
+* Easily definable constructor method.
+* instanceof substitution.
+* Possibility to deep copy objects.
+* Opt in support for "_super"-method to access overwritten functions.
+* Opt in support for "abstract" methods.
+* Debug mode for easier development.
+* Light weight and fast.
 
-----------------
+## Documentation
+### 1.	General	
+Get the objectfactory from GitHub or via npm.
 
-I developed the objectfactory for my bachelor thesis project [jnstrument](http://jnstrument.com), where I used a node server and browserify to serve the JavaScript.
+Include it into your project:
 
-I was originally looking at the [Simple JavaScript Inheritance](http://ejohn.org/blog/simple-javascript-inheritance/) by John Resig, but found it to be to "public". I wanted to make use of closures and "private" methods. Also instances should be separated from eachother, so that changing one wouldn't affect the others. So I started to make changes on John Resigs script and soon ended up rewriting it completely. 
-
-The outcome of this rewrite turned out to be a light weight library that was very valuable and awesome for my project. 
-It also turned out that there are other people having similar ideas and are better in explaining why this is awesome: [Fluent JavaScript – Three Different Kinds Of Prototypal OO](http://ericleads.com/2013/02/fluent-javascript-three-different-kinds-of-prototypal-oo/) by Eric Elliott.
-
-#Documentation
-
-1.	General
-----------------
-	
-Get the objectfactory from GitHub or via npm by running in your terminal:
-
-```
-$ npm install objectfactory
-```
-
-Include it into your node project by calling
-``` javascript
-var objectfactory = require("objectfactory");
-```
-
-or into your web project by adding
- 
 ``` html
 <script src="path/to/the/file/objectfactory.js"></script>
 ```
-
-And you're good to go!
-
-	
-2. Create Modular Factories
-----------------
+or when using a require.js:
 
 ``` javascript
 var objectfactory = require("objectfactory");
+```
+And you're good to go!
+### 2. Basic Modular Factories
+Base objects for the following examples:
 
-///////////////////////////////////////////////////////////////////////////////
-
-// A
+``` javascript
 var a = {
 	a : "A",					
-	getA : function(){
-		return this.a;
-	},
-	getValue:function(){
-		return this.a;
-	}
+	getA : function(){ return this.a },
+	getValue:function(){ return this.a }
 }
 
-// B
 var b =  function(){};
 b.prototype.b = "B";
-b.prototype.getB = function(){
-	return this.b
-}
-b.prototype.getValue = function(){
-	return this.b
-}
+b.prototype.getB = function(){ return this.b }
+b.prototype.getValue = function(){ return this.b }
+b.static = function(){ return "B" }
 
-// C
 var c = function (){	
-	this.c = "C";
-	this.getC = function(){
-		return this.c;
-	}	
-	this.getValue = function(){
-		return this.c;
-	}
+	var c = "C";	// private property
+	this.getC = function(){	return c }	
+	this.getValue = function(){ return c }
 }
-
-///////////////////////////////////////////////////////////////////////////////
-
-var factoryABC 	= objectfactory(a, b, c);
-var factoryB	= objectfactory(b);
-var factoryBC 	= factoryB.extend(c);
-var factoryCB 	= objectfactory(c).extend(factoryB);
-	
-///////////////////////////////////////////////////////////////////////////////
-
-var instanceABC = factoryABC();	// is the same as: new factoryABC();
-								// {a:"A", b:"B", c:"C", getA:function, getB:function, getC:function, getValue:function}
-
-instanceABC.getA();				// A
-instanceABC.getB();				// B
-instanceABC.getC();				// C
-
-///////////////////////////////////////////////////////////////////////////////
-
-var instanceB 	= factoryB();
-var instanceB2 	= factoryB();
-
-instanceB.getB();				// B
-instanceB2.getB();				// B
-
-instanceB.b = "X";
-
-instanceB.getB();				// X
-instanceB2.getB();				// B -> instances are completely separated. Changing one doesn't affect the others.
-
-///////////////////////////////////////////////////////////////////////////////
-
-var instanceBC = factoryBC();
-var instanceCB = factoryCB();
-
-instanceBC.getValue();			// C
-instanceCB.getVAlue();			// B -> extending methods overwrite existing methods.
-
+c.static = function(){ return "C" }
 ```
-
-
-3. Closures: Private and privileged methods.
-----------------
-
-Closures are preserved.
+#### Create Factories
+Create modular factories from objects or functions.
+Object literals are handled like the prototype of functions resulting in public properties.
+Closures are preserved. Privileged methods keep their privileges.
+Factory objects can also be used with the objectfactory.
 
 ``` javascript
-var objectfactory = require("objectfactory");
+var factoryAB = objectfactory(a, b);
+var factoryABC = objectfactory(factoryAB, c);	// same as objectfactory(a, b, c);
+
+var instanceABC = factoryABC();
+
+instanceABC.getA()			// -> "A"
+instanceABC.getB()			// -> "B"
+instanceABC.getC()			// -> "C" /Privileges to access private property preserved.
+
+instanceABC.a 				// -> "A"
+instanceABC.b 				// -> "B"
+instanceABC.c 				// -> Undefined 
 
 ///////////////////////////////////////////////////////////////////////////////
+var instanceABC2 = factoryABC();
 
-// A
-var a = {
-	a : "A",					
-	getA : function(){
-		return this.a;
-	},
-	getValue:function(){
-		return this.a;
-	}
-}
+instanceABC2.a 				// -> "A"
+instanceABC2.a = "Z"
 
-// B
-var b = function (){	
-	var b = "B";
-
-	var getValue = function(){
-		return b;
-	}
-
-	this.getB = function(){
-		return getValue();
-	}	
-
-	this.setB = function(_b){
-		b = _b;
-	}
-
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-var factoryAB 	= objectfactory(a, b);
-
-var instanceAB = factoryAB();	
-var instanceAB2 = factoryAB();	
-
-instanceAB.getA();				// A
-instanceAB.getB();				// B -> private method getValue is accessible from within the closure (privileged methods)
-instanceAB.getValue();			// A -> private method getValue doesn't overwrite anything.
-
-instanceAB2.getB();				// B
-instanceAB2.setB("X");					
-instanceAB2.getB();				// X -> private variable changed in instanceAB2
-
-instanceAB.getB();				// B -> Private variable of instanceAB is untouched.
-
+instanceABC2.a 				// -> "Z"
+instanceABC.a 				// -> "A" / Instances are not references but separate entities
 ```
-
-4. "static" function object properties
----------------
-
-All "static" properties of the extending function objects are preserved and are available as "static" properties on the objectfactory object.
+#### Overwriting Properties
+Properties of later added objects override already existing properties.
+Public properties can override privileged ones and vice versa.
 
 ``` javascript
-var objectfactory = require("objectfactory");
+var factoryAB = objectfactory(a, b);
+var factoryBA = objectfactory(b, a);
 
-///////////////////////////////////////////////////////////////////////////////
+var instanceAB = factoryAB();
+var instanceBA = factoryBA();
 
-// A
-var a =  function(){};
-a.prototype.a = "A";
-a.prototype.getA = function(){
-	return this.a
-}
-a.prototype.getValue = function(){
-	return this.a
-}
-
-a.defaultA = "A";
-a.getDefault = function(){ 	
-	return "A";
-}
-
-// B
-var b = function (){	
-	var b = "B";
-
-	var getValue = function(){
-		return b;
-	}
-
-	this.getB = function(){
-		return getValue();
-	}	
-
-	this.setB = function(_b){
-		b = _b;
-	}
-}
-
-b.defaultB = "B";
-b.getDefault = function(){ 
-	return "B";
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-var factoryAB 	= objectfactory(a, b);
-
-var instanceAB = factoryAB();	
-
-factoryAB.defaultA 				// A
-factoryAB.defaultB				// B
-factoryAB.getDefault()			// B -> extending static methods overwrite existing static methods.
-
-instanceAB.defaultA 			// undefined
-instanceAB.defaultB				// undefined
-instanceAB.getDefault()			// undefined
-
+instanceAB.getValue()		// -> "B"
+instanceBA.getValue()		// -> "A"
 
 ```
+#### "Static Properties"
+Properties of the function object (not the prototype) are preserved as well and are accessible on the factory object.
+The same overwrite rules apply.
 
-5. Constructor
-----------------
+``` javascript
+var factoryAB = objectfactory(a, b);
+var factoryBC = objectfactory(b, c);
+var factoryCB = objectfactory(c, b);
 
+factoryAB.static()			// -> "B"
+factoryBC.static()			// -> "C"
+factoryCB.static()			// -> "B"
+
+var instanceAB = factoryAB();
+
+instanceAB.static()			// -> Error: Undefined
+```
+### 3.  Deep Copying Modules.
+When passing `true` as the first Parameter, modules will be deep copied.
+
+``` javascript
+var factoryEF = objectfactory(true, e, f);
+``` 
+
+Base objects for the following examples:
+
+``` javascript
+var e = {
+	e : "E",	
+	x : {
+		x1 : "A",
+		x2 : "B",
+		x3 : "C"
+	}
+}
+
+var f = {
+	f : "F",	
+	x : {
+		x1 : "A",
+		x2 : "B",
+		x3 : "C"
+	}
+}
+```
+
+While modules that are passed to the objectfactory are always copied to separate the instances, module properties that are objects or arrays by default, are passed to the instance as reference.
+
+``` javascript
+var factoryEF = objectfactory(e, f);
+
+var instance1 = factoryEF();
+var isntance2 = factoryEF();
+
+instance1.f 		// -> "F"
+instance2.f 		// -> "F"
+instance1.x.x1 		// -> "A"
+instance2.x.x1 		// -> "A"
+
+instance1.f = "dF"
+instance1.x.x1 = "dA"
+
+instance1.f 		// -> "dF"
+instance2.f 		// -> "F"  / Modules are always copied so changing instanceEF1.f doesnt affect instanceEF2.f 
+instance1.x.x1 		// -> "dA"
+instance2.x.x1 		// -> "dA" / instanceEF1.x is a reference to an object. 
+								 So changing the object (instanceEF1.x.x1) affects all instances.
+f.x.x2 = "dB"				   / Also changing the original object affects all instances.
+
+instance1.x.x2 	// -> "dB"
+instance2.x.x2 	// -> "dB" 
+```
+
+To prevent module properties to be passed as references, but instead create a deep copy of the module, the first parameter of the objectfactory can be set to `true`.
+
+``` javascript
+var factoryEF = objectfactory(true, e, f);
+
+var instance1 = factoryEF();
+var isntance2 = factoryEF();
+
+instance1.f 		// -> "F"
+instance2.f 		// -> "F"
+instance1.x.x1 	// -> "A"
+instance2.x.x1 	// -> "A"
+
+instance1.f = "dF"
+instance1.x.x1 = "dA"
+
+instance1.f 		// -> "dF"
+instance2.f 		// -> "F" 
+instance1.x.x1 		// -> "dA"
+instance2.x.x1 		// -> "A" / Now changing instanceEF1.x wont affect instanceEF2.x
+
+f.x.x2 = "dB"				  / Changing the original object wont affect anything.
+
+instance1.x.x2 		// -> "B"
+instance2.x.x2 		// -> "B" 
+```
+### 4. Constructor
 A public construct() method will be used as constructor and called on instanciation of the class.
+Arguments passed on instanciation are passed to the constructor.
 
 If the return value of the constructor is a function or an object, this will be returned instead of the newly created object reference. All other return values get omitted.
 
 
 ``` javascript
-var objectfactory = require("objectfactory");
+///// A
+var a = {
+	a : "A",					
+	getA : function(){ return this.a },
+	getValue:function(){ return this.a }
+}
 
-///////////////////////////////////////////////////////////////////////////////
-
-var Car = objectfactory({
-
-	brand:null,
-
-	construct : function(brand){
-		this.brand = brand;
-		return "new car";						// omitted
-	},
-
-	drive : function(){
-		return "driving";
+///// D
+var d = {
+	construct : function(argument){
+		console.log("construct");
+		return argument;
 	}
-
-});
-
-///////////////////////////////////////////////////////////////////////////////
-
-var BrokenCar = Car.extend(function(){
-
-	this.construct = function(brand){
-		return { brand:brand };					// not omitted
-	}
-
-});
-
-///////////////////////////////////////////////////////////////////////////////
-
-var mini 			= new Car("Mini");			// { brand:"Mini", 	construct:Function,	drive:Function };
-var smart 			= new Car("Smart");			// { brand:"Smart", construct:Function,	drive:Function };
-var brokenFiat		= new BrokenCar("Fiat");	// { brand:"Fiat" };
-
-mini.brand;										// "Mini"
-mini.drive();									// driving
-
-smart.brand;									// "Smart"
-smart.drive();									// driving
-	
-brokenFiat.brand;								// "Fiat"
-brokenFiat.drive();								// undefined
-```
-
-3. _super Keyword
-----------------
-
-Overwritten methods can be accessed by this._super().
-
-``` javascript
-var objectfactory = require("objectfactory");
-
-///////////////////////////////////////////////////////////////////////////////
-
-var Car = objectfactory(function(){
-
-	this.getDescription = function(){
-		return "Standard car";
-	}
-
-});
-
-///////////////////////////////////////////////////////////////////////////////
-
-var FeatureAirConditioner =  {
-
-	getDescription : function(){
-		return this._super()+" with AC";
-	}
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var FeatureNavi = function (){
+var factoryAD = objectfactory(a, d);
+var instanceAD1 = factoryAD("argument1"); 	// -> Return: instanceAD,	Log: "construct"
+var instanceAD2 = factoryAD({x: "X"});		// -> Return: {x: "X"}, 	Log: "construct"
+```
+### 5. instanceof Method
+The native instanceof operator does not work for factories. 
+objectfactory provides a public `instanceof` method that works as expected with all extended objects and factories.
+Any user defined `instanceof` method will overwrite this "native" objectfactory method.
 
-	this.getDescription = function(){
-		return this._super()+" and navi";
+``` javascript
+///// A
+var a = {
+	a : "A"
+}
+
+///// B
+var b =  function(){};
+b.prototype.b = "B";
+
+///// C
+var c = function (){	
+	var c = "C";
+}
+
+///// E 
+var e = {
+	instanceof: function(){
+		return "overwritten";
 	}
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var Mini 		= Car.extend(FeatureAirConditioner);
-var Smart 		= Car.extend(FeatureNavi);
-var Fiat 		= Car.extend(FeatureAirConditioner).extend(FeatureNavi);
+var factoryBC = objectfactory(b, c);
+var factoryABC = objectfactory(a, factoryBC);
+var factoryBCE = objectfactory(factoryBC, e);
 
-///////////////////////////////////////////////////////////////////////////////
+var instanceBC = factoryBC();
+var instanceABC = factoryABC();
+var instanceBCE = factoryBCE();
 
-var mini 		= new Mini();	
-var smart 		= new Smart();	
-var fiat 		= new Fiat();		
+instanceBC.instanceof(a)			// -> false
+instanceBC.instanceof(b)			// -> true
+instanceBC.instanceof(factoryBC)	// -> true
+instanceBC.instanceof(factoryBCE)	// -> false
 
-mini.getDescription();			// "Standard car with AC"
-smart.getDescription();			// "Standard car and navi"
-fiat.getDescription();			// "Standard car with AC and navi"
+instanceABC.instanceof(a)			// -> true
+instanceABC.instanceof(b)			// -> true
+instanceABC.instanceof(factoryBC)	// -> true
+instanceABC.instanceof(factoryBCE)	// -> false
+
+instanceBCE.instanceof(a)			// -> "overwritten"
+instanceBCE.instanceof(b)			// -> "overwritten"
+instanceBCE.instanceof(factoryBC)	// -> "overwritten"
+instanceBCE.instanceof(factoryBCE)	// -> "overwritten"
 ```
 
+### 6. Opt In Features
 
+There are three features `"deep"`, `"abstract"` and `"super"` that are not enabled by default. This is due to the fact, that they provide additional functionality that is not needed (or liked) all the time (or at all) and also that enabling them comes with a slight performance cost. To optimize performance, enabling them only when needed is favorable.
 
+Options can be passed as the first parameter to the objectfactory:
+``` javascript
+
+// Single options as string.
+var factory = objectfactory("deep", x, y);		// equals: objectfactory(true, x, y);
+var factory = objectfactory("abstract", x, y);
+var factory = objectfactory("super", x, y);
+
+// Or multiple options as array. All options are combinable.
+var factory = objectfactory(["abstract", "super"], x, y);
+var factory = objectfactory(["deep", "abstract"], x, y);
+``` 
+
+#### Deep (Copying)
 
 ``` javascript
-var objectfactory = require("objectfactory");
+var factory = objectfactory(["deep"], x, y);
+// equals
+var factory = objectfactory(true, x, y);
+``` 
+Passing `"deep"` initiates a deep copy of the modules. This is exactly the same as passing `true` as the first parameter and you can read about this in the chapter about Deep Copying Modules.
+
+#### Super
+``` javascript
+var factory = objectfactory(["super"], x, y);
+``` 
+Passing `"super"` enables the possibility to access overwritten methods with `this._super()`.
+
+``` javascript
+var n = {
+	n : function(){
+		return "N"
+	}
+}
+
+var m = function(){
+	this.n = function(){
+		var n = this._super();
+		return n+"M"
+	}
+}
+
+var o = function(){
+	this.n = function(){
+		var n = this._super();
+		return n+"O"
+	}
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var Car = objectfactory(function(){
+var factoryNM = objectfactory(n, m);
+var instanceNM = factoryNM();
 
-	var brand;
+instanceNM.n()		// Error: this._super() not defined.
 
-	this.construct = function(_brand){
-		brand=_brand;
-	}
+var factoryNMs = objectfactory(["super"], n, m);
+var instancsNMs = factoryNMs();
 
-	this.drive = function(){
-		return brand+"driving";
-	}
-
-});
+instanceNM.n()		// -> "NM"
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var FeatureCargoArea =  function(){
+var factoryNOs = objectfactory(["super"], n, m);  // Only use it when its needed.
+var factoryMNO = objectfactory(m, factoryNOs);
 
-	var cargo = [],
+var instancsMNO = factoryMNO();
 
-		areaSize;
+instanceMNO.n()		// -> "NO"
+```
 
-	var checkCargo = function(){
-		return cargo.length <= areaSize ? true : false;
+#### Abstract
+``` javascript
+var factory = objectfactory(["abstract"], x, y);
+``` 
+Passing `"abstract"` enables the possiblity to define abstract methods by defining a property as `Function`. This abstract method needs to be implemented by any other module before the factory can be instanciated. To keep the modularity, abstract methods do not overwrite existing methods.
+
+``` javascript
+var t = {
+	t : function(){
+		return "T"
 	}
+}
 
-	this.construct = function(_brand, _areaSize){
-		areaSize=_areaSize;
-		this.super(_brand);
-	}
+var u = {
+	t : Function
+}
 
-	this.addCargo = function(_cargo){
-		if( checkCargo() ) {
-			cargo.push(_cargo);
-			return _cargo+" loaded";
+var v = {
+	v : {
+		v1 : function(){
+			return "V1";
 		}
-		else return "Cargo area full";
 	}
+}
 
-	this.getCargo = function(){
-		return cargo.join(", ");
+var w = {
+	v : {
+		v1 : Function
 	}
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var Pickup 			= Car.extend(FeatureCargoArea);
+var factoryUW = objectfactory(u, v);
+var instanceUW = factoryUV();		// -> { t: Function, v: {v1 : Function} }
+
+var factoryUW = objectfactory(["abstract"], u, v);
+var instanceUW = factoryUW();					// Error: Abstract Method "t" needs to be defined
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var mini 			= new Car("Mini");	
-var smallPickup		= new Pickup("Ford", 1);	
-var largerPickup	= new Pickup("Ford", 3);	
+var factoryUWT = objectfactory(factoryUWa, t);
+var instanceUWT = factoryUWT();					// -> { t: function(){...}, v: {v1 : Function} }
 
-mini.drive();						// "Mini driving"
+var factoryTUW = objectfactory(t, factoryUWa);	// Abstract Methods do not overwrite existing Methods.
+var instanceTUW = factoryTUW();					// -> { t: function(){...}, v: {v1 : Function} }
 
-smallPickup.drive();				// "Ford driving"
-smallPickup.addCargo("Surfboard");	// "Surfboard loaded"
-smallPickup.addCargo("Grill");		// "Sorry, cargo area full"
-smallPickup.getCargo();				// "Boat, Surfboard"
-smallPickup.checkCargo();			// undefined
+///////////////////////////////////////////////////////////////////////////////
+// Options can be combined at will – works with deep.
 
+var factoryTW = objectfactory(["abstract"], t, w);
+var instanceTW = factoryTW();					// -> { t: function(){...}, v: {v1 : Function} }
 
-largerPickup.drive();				// "Ford driving"
-largerPickup.addCargo("Surfboard");	// "Surfboard loaded"
-largerPickup.addCargo("BBQ");		// "BBQ loaded"
-largerPickup.addCargo("Beer");		// "Beer loaded"
-largerPickup.addCargo("Scooter");	// "Sorry, cargo area full"
-largerPickup.getCargo();			// "Boat, Surfboard, Grill, Meat, Beer"
-largerPickup.checkCargo();			// undefined
-```
+var factoryTW = objectfactory(["abstract", "deep"], t, w);
+var instanceTW = factoryTW();					// Error: Abstract Method "v.v1" needs to be defined
 
+var factoryTWV = objectfactory(["deep"], factoryTW, v);
+var instanceTWV = factoryTWV();					// -> { t: function(){...}, v: {v1 : function(){...}} }
+``` 
 
-
-5. Abstact classes and methods
-----------------
-
-It is possible to define a class/module abstract. This class can't be initiated itself but has to be extended.
-In abstract classes, abstract methods can be defined by defining the method as the Function object.
-Existing Methods can't be overwritten by abstract methods.
-
+### 7. Debug Mode
+Debug mode can be enabled by defining:
 ``` javascript
-var objectfactory = require("objectfactory");
-
-///////////////////////////////////////////////////////////////////////////////
-
-var Car = objectfactory.abstract(function(){
-
-	var brand;
-
-	this.construct = function(_brand){
-		brand=_brand
-	}
-
-	this.drive = Function;
-
-	this.slowDown = function(){
-		return "slowing down";
-	}
-
-});
-
-///////////////////////////////////////////////////////////////////////////////
-
-var Mini = Car.extend(function(){
-
-	this.hasNavi = true;
-
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-var Smart = Car.extend(function(){
-
-	this.drive= function(){
-		return "driving"
-	}
-
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-var Pickup = Car.extend.abstract(){
-
-	this.hasCargoArea = true;
-
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-var Ford = Pickup.extend(function(){	
-
-	this.drive=function(){
-		return "driving with 4x4";
-	}		
-
-});
-
-///////////////////////////////////////////////////////////////////////////////
-
-var CustomBreaks = Car.extend.abstract(function(){
-	
-	this.slowDown = Function;
-	
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-var Fiat = Car.extend.abstract(CustomBreaks).extend(function(){
-	
-	this.drive= function(){
-		return "driving";
-	}
-	
-});
-
-///////////////////////////////////////////////////////////////////////////////
-
-
-var Car 			= new Car();			// Error "Abstract class may not be constructed."
-var mini 			= new Mini();			// Error "Abstract method 'drive' needs to be defined."
-var smart 			= new Smart();		
-var pickup 			= new Pickup();			// Error "Abstract class may not be constructed."
-var ford  			= new Ford();	
-var customBreaks	= new CustomBreaks(); 	// Error "Abstract class may not be constructed."
-var fiat  			= new Fiat();			// Error "Can't override 'slowDown' with abstract method."
-
-
-smart.drive()					// "driving"
-smart.slowDown()				// "slowing down"
-
-ford.drive()					// "driving with 4x4"
-ford.slowDown()					// "slowing down"
-ford.hasCargoArea;				// true
-```
-
-
-6. instanceof
----------------
-
-The native instanceof operator works for the first child of the objectfactory. 
-This allows the extension of native objects or third party libraries. So the extended object will pass any validation tests in the library etc.
-
-For all other extended Classes, a public instanceof method is provided that works for all extended classes.
-
-If there already is a public instanceof method the objectfactory instancof method will be called _instanceof instead.
-
-
-
-``` javascript
-var objectfactory = require("objectfactory");
-
-///////////////////////////////////////////////////////////////////////////////
-
-var Car = function(){
-
-	this.drive = function(){
-		return "driving"
-	}
-
-};
-
-///////////////////////////////////////////////////////////////////////////////
-
-var FeatureNavi = function (){	
-
-	this.hasNavi=function(){
-		return true;
-	}
-
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-var FeatureAC = function (){	
-
-	this.hasAC=function(){
-		return true;
-	}
-
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-var MyCar 	= objectfactory.extend(Car).extend(FeatureNavi).extend(FeatureAC);
-
-///////////////////////////////////////////////////////////////////////////////
-
-var car = new MyCar();
-
-
-car instanceof Car 				// true
-car instanceof featureNavi		// false
-car instanceof featureAC 		// false
-car instanceof MyCar 			// false
-
-
-car.instanceof(Car) 			// true
-car.instanceof(featureNavi)		// true
-car.instanceof(featureAC) 		// true
-car.instanceof(MyCar) 			// true
-```
-
-7. "static" function object properties
----------------
-
-All "static" properties of the extending function objects are passed along and are available as "static" properties on the objectfactory object.
-Here also overwritten functions are accessible via the this._super keyword.
-
-``` javascript
-var objectfactory = require("objectfactory");
-
-///////////////////////////////////////////////////////////////////////////////
-
-var Car = function(){
-
-	this.drive = function(){
-		return "driving"
-	}
-
-}
-
-Car.push= function() {
-	return "pushing car"
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-var FeatureNavi = function (){	
-
-	this.hasNavi=function(){
-		return true;
-	}
-
-}
-
-FeatureNavi.useMap = function(){
-	return "using map";	
-}
-
-
-FeatureNavi.push= function() {
-	return this._super()+" and navi"
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-var MyCar 	= objectfactory.extend(Car).extend(FeatureNavi);
-
-///////////////////////////////////////////////////////////////////////////////
-
-var car = new MyCar();
-
-MyCar.push();		// "pushing car and navi"
-MyCar.useMap();		// "using map"
-
-car.push();			// undefined
-car.useMap();		// undefined
-```
-
-7. Nice display in inspector
----------------
-
-``` javascript
-var objectfactory = require("objectfactory");
-
-///////////////////////////////////////////////////////////////////////////////
-
-var Car = function(){
-
-	this.drive = function(){
-		return "driving"
-	}
-
-};
-
-///////////////////////////////////////////////////////////////////////////////
-
-var Truck = function (){	
-
-	this.has4x4=function(){
-		return true;
-	}
-
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-var Pickup = function (){	
-
-	this.hasCargoArea=function(){
-		return true;
-	}
-
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-var PickupTruck 	= objectfactory.extend(Car).extend(Truck).extend(Pickup);
-
-///////////////////////////////////////////////////////////////////////////////
-
-var myTruck = new PickupTruck();
-
-console.log(myTruck);
-```
-![Console Screenshot](http://greenish.github.io/js-objectfactory/objectfactoryConsole.png)
+objectfactory.debug = true;
+``` 
+In debug mode, the complete prototype chain is preserved and visible in the inspector.
+This costs performance but can be valuable for debugging. 
+
+Debug mode disabled:
+![Console Screenshot](http://www.philippadrian.com/wp-content/uploads/2013/12/consoleNotDebugMode.gif)
+
+Debug mode enabled:
+![Console Screenshot](http://www.philippadrian.com/wp-content/uploads/2013/12/consoleDebugMode.gif)
 
