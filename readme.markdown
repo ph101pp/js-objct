@@ -1,6 +1,6 @@
 #objectfactory
 
-A modular JavaScript inheritance library that works nicely with browserify, CommonJS or just vanilla JavaScript.
+A modular oop-inheritance library for javascript that supports closures and abstract methods. Works nicely with browserify, CommonJS or just vanilla javascript.
 
 ----------------
 
@@ -16,6 +16,8 @@ __Keyfeatures:__
 * Opt in support for "abstract" methods.
 * Debug mode for easier development.
 * Light weight and fast.
+
+----------------
 
 ## Documentation
 ### 1.	General	

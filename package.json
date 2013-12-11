@@ -2,7 +2,7 @@
   "name": "objectfactory",
   "version": "1.0.1",
   "author": "Philipp Adrian <hello@philippadrian.com>",
-  "description": "A modular JavaScript inheritance library that works nicely with browserify, CommonJS or just vanilla JavaScript.",
+  "description": "A modular oop-inheritance library that supports closures and abstract methods. Works nicely with browserify, CommonJS or just vanilla JavaScript.",
   "main":"objectfactory.js",
   "repository": {
     "type": "git",
@@ -16,19 +16,23 @@
     "super",
     "class",
     "prototype",
+    "prototypal",
     "base",
     "parent",
+    "pattern",
     "oop",
     "private",
+    "public",
+    "privileged",
+    "static",
     "closure",
     "inheritance",
     "object",
     "oriented",
-    "javascript",
-    "js",
     "method",
     "function",
-    "factory"
+    "factory",
+    "instanceof"
   ],
   "license": "MIT"
 }
