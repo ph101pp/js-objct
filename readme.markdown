@@ -6,6 +6,7 @@ A modular oop-inheritance library for javascript that supports closures and abst
 
 __Keyfeatures:__
 
+* Light weight and fast.
 * "Multiple inheritance". Objects can be modular assembled for each object.
 * Closures are preserved. Private, privileged and public method definitions work as usual.
 * Factory objects can be extended and used with the objectfactory.
@@ -15,7 +16,6 @@ __Keyfeatures:__
 * Opt in support for "_super"-method to access overwritten functions.
 * Opt in support for "abstract" methods.
 * Debug mode for easier development.
-* Light weight and fast.
 
 ----------------
 
@@ -44,11 +44,15 @@ var a = {
 	getValue:function(){ return this.a }
 }
 
+//////////////////////////////////////////////////////////////////////////////
+
 var b =  function(){};
 b.prototype.b = "B";
 b.prototype.getB = function(){ return this.b }
 b.prototype.getValue = function(){ return this.b }
 b.static = function(){ return "B" }
+
+//////////////////////////////////////////////////////////////////////////////
 
 var c = function (){	
 	var c = "C";	// private property
@@ -77,7 +81,7 @@ instanceABC.a 				// -> "A"
 instanceABC.b 				// -> "B"
 instanceABC.c 				// -> Undefined 
 
-///////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 var instanceABC2 = factoryABC();
 
 instanceABC2.a 				// -> "A"
