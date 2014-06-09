@@ -21,7 +21,7 @@ __Keyfeatures:__
 
 ## Documentation
 ### 1.	General	
-Get the objectfactory from GitHub or via npm.
+Get the objectfactory from GitHub, via [bower](http://bower.io) or [npm](https://www.npmjs.org/package/objectfactory).
 
 Include it into your project:
 
