@@ -1,13 +1,11 @@
 {
   "name": "objectfactory",
   "version": "1.0.2",
-  "author": "Philipp Adrian <hello@philippadrian.com>",
+  "authors": [
+    "Philipp Adrian <hello@philippadrian.com> (http://philippadrian.com)"
+  ]
   "description": "A fast modular oop-inheritance library that supports closures and abstract methods. Works nicely with browserify, CommonJS or just vanilla JavaScript.",
-  "main":"objectfactory.js",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/greenish/js-objectfactory.git"
-  },
+  "main":"objectfactory.js"
   "keywords": [
     "inherit",
     "modular",
@@ -34,5 +32,4 @@
     "factory",
     "instanceof"
   ],
-  "license": "MIT"
 }
