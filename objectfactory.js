@@ -272,8 +272,11 @@ Factory.debug = false;
 
 var strExecutable = ""+Factory();
 
-if(typeof module === "object") module.exports = Factory;
-else window.objectfactory = Factory;
+if(typeof define === "function" && typeof require ==="function") 
+	define(function(){return Factory});
+else if(typeof window === "object")
+	window.objectfactory = Factory;
+else if(typeof module === "object") module.exports = Factory;
 
 ////////////////////////////////////////////////////////////////////////////////
 })();
