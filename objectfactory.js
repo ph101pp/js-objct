@@ -84,6 +84,7 @@ var extend = function(target, source, module, abstractMethods, keys, path) {
 }
 ////////////////////////////////////////////////////////////////////////////////
 var extendProperty = function(target, source, k, module, abstractMethods, path) {
+	if(k === "instanceof" && ""+source[k] === strInstanceof) return; //dont override instanceof with "old" instanceof
 	var newTarget;
 	path = path || "";
 	if(module._deep && typeof source[k] === "object") {
@@ -198,7 +199,7 @@ var Factory = function(){
 		checkAbstractMethods(instance, abstractMethods);
 
 		// Call construct if available
-		if(instance.construct) 
+		if(typeof instance.construct === "function") 
 			construct = instance.construct.apply(instance, arguments);
 
 		returnType = typeof construct;
@@ -209,15 +210,21 @@ var Factory = function(){
 	}
 	////////////////////////////////////////////////////////////////////////////
 	var _instanceof = function(fn){
-		if(typeof fn === "function" && this instanceof fn) return true;
-		if(Executable === fn) return true;
+//		if(typeof fn === "function" && this instanceof fn) return true; // traditional instance of - even necessary?
+		if(Executable === fn) return true; // own objectfactory
+		if(this === fn) return true; // self
 
-		for(var i=0; i<modules.length; i++) {
-			if(modules[i].strObj === strExecutable && modules[i]._instanceof(fn)) 
+		for(var i=0; i<modules.length; i++) { //modules
+			if(modules[i].strObj === strExecutable && modules[i]._instanceof(fn)) // _instanceof of submodule-factory
 				return true;
-			else if(modules[i].obj === fn) 
+			else if(modules[i].obj === fn) // is submodule
 				return true;
-		}
+			else if(typeof modules[i].obj === "object" 
+			&& typeof modules[i].obj.instanceof === "function" 
+			&& ""+modules[i].obj.instanceof === strInstanceof 
+			&& modules[i].obj.instanceof(fn)) // is instanceof submodule-instance
+				return true;
+		} 
 		return false;
 	}
 	////////////////////////////////////////////////////////////////////////////
@@ -270,7 +277,9 @@ var Factory = function(){
 ////////////////////////////////////////////////////////////////////////////////
 Factory.debug = false;
 
-var strExecutable = ""+Factory();
+var factory = Factory();
+var strExecutable = ""+factory;
+var strInstanceof = ""+factory().instanceof;
 
 // Connect to Environment 
 if(typeof define === "function" && typeof require ==="function") 
