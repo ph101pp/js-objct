@@ -3,7 +3,7 @@
   "version": "1.0.2",
   "author": "Philipp Adrian <hello@philippadrian.com>",
   "description": "A fast modular oop-inheritance library that supports closures and abstract methods. Works nicely with browserify, CommonJS or just vanilla JavaScript.",
-  "main":"objectfactory.js",
+  "main": "objectfactory.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/greenish/js-objectfactory.git"
@@ -36,6 +36,14 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "gulp": "^3.6.1"
+    "gulp": "^3.6.1",
+    "gulp-uglify": "^0.3.1",
+    "gulp-jshint": "^1.8.4",
+    "gulp-notify": "^1.4.2",
+    "gulp-rename": "^1.2.0",
+    "gulp-bump": "^0.1.11",
+    "gulp-git": "^0.4.0",
+    "node-qunit-phantomjs": "^0.2.2",
+    "qunitjs": "^1.15.0"
   }
 }

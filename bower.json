@@ -3,9 +3,9 @@
   "version": "1.0.2",
   "authors": [
     "Philipp Adrian <hello@philippadrian.com> (http://philippadrian.com)"
-  ]
+  ],
   "description": "A fast modular oop-inheritance library that supports closures and abstract methods. Works nicely with browserify, CommonJS or just vanilla JavaScript.",
-  "main":"objectfactory.js"
+  "main": "objectfactory.js",
   "keywords": [
     "inherit",
     "modular",
@@ -31,5 +31,5 @@
     "function",
     "factory",
     "instanceof"
-  ],
+  ]
 }
