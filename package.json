@@ -34,5 +34,8 @@
     "factory",
     "instanceof"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "gulp": "^3.6.1"
+  }
 }
