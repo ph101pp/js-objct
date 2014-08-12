@@ -7,6 +7,7 @@ var gulp = require("gulp"),
     qunit = require('node-qunit-phantomjs'),
     bump = require('gulp-bump');
 
+
 gulp.task('scripts', function() {
   return gulp.src('lib/*.js')
     .pipe(jshint())
@@ -26,6 +27,7 @@ gulp.task('test', function() {
 
 
 /* Deploy - Test when next deploy ready*/
+
 // gulp.task('bump', function () {
 //   return gulp.src(['./package.json', './bower.json'])
 //     .pipe(bump())
