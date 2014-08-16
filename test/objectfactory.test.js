@@ -1,4 +1,133 @@
+var runTests = function(name, options, debug){
+	options = options || [];
 
+	QUnit.test( name, function( assert ) {
+		objectfactory.debug = debug;
+		basics(assert, options);
+		constructors(assert, options);	
+		instancesof(assert, options);
+		objectfactory.debug = false;	
+	});
+}
+
+var instancesof = function(assert, options) {
+	options = options || [];
+	var prefix = "InstanceOf: ";
+	var a = {
+	    a : "A",                    
+	}
+
+	////////////////////////////////////////////////////////////
+
+	var b =  function(){};
+	b.prototype.b = "B";
+
+	////////////////////////////////////////////////////////////
+
+	var c = function (){    
+	    var c = "C";    // private property
+	}
+	////////////////////////////////////////////////////////////
+
+	var fBC = objectfactory(b, c);
+	var iBC = fBC();
+	
+	var fABC = objectfactory(a, fBC);
+	var iABC = fABC();
+
+	var fiABC = objectfactory(a, iBC);
+	var iiABC = fiABC();
+
+	assert.strictEqual(iBC.instanceof(a), false, prefix+"i(b,c) !-> a");
+
+	assert.strictEqual(iABC.instanceof(a), true, prefix+"i(a,f(b,c)) -> a");
+	assert.strictEqual(iABC.instanceof(b), true, prefix+"i(a,f(b,c)) -> b");
+
+	assert.strictEqual(iABC.instanceof(iABC), true, prefix+"i(a,f(b,c)) -> i(a,f(b,c))");
+	assert.strictEqual(iABC.instanceof(fABC), true, prefix+"i(a,f(b,c)) -> f(a,f(b,c))");
+
+	assert.strictEqual(iABC.instanceof(fBC), true, prefix+"i(a,f(b,c)) -> f(b,c))");
+
+	assert.strictEqual(iiABC.instanceof(a), true, prefix+"i(a,i(b,c)) -> a");
+	assert.strictEqual(iiABC.instanceof(b), true, prefix+"i(a,i(b,c)) -> b");
+
+	assert.strictEqual(iiABC.instanceof(iiABC), true, prefix+"i(a,i(b,c)) -> i(a,i(b,c))");
+	assert.strictEqual(iiABC.instanceof(fiABC), true, prefix+"i(a,i(b,c)) -> f(a,i(b,c))");
+
+	assert.strictEqual(iiABC.instanceof(iBC), true, prefix+"i(a,i(b,c)) -> i(b,c))");
+}
+
+////////////////////////////////////////////////////////////////
+
+var constructors = function(assert, options){
+	options = options || [];
+	var prefix = "Constructors: ";
+	var ran = {
+		a:false,
+		b:false,
+		c:false,
+		construct:false,
+	}
+	var testParam = ["test", {},[]];
+	var a = function(params){
+		this.a = "A";
+		ran.a = true;
+
+		assert.strictEqual(this.a, "A", prefix+"i(a,b,c).a defined in a()");
+		assert.strictEqual(this.b, undefined, prefix+"i(a,b,c).b not defined in a()");
+		assert.strictEqual(this.c, undefined, prefix+"i(a,b,c).c not defined in a()");
+
+		assert.strictEqual(params, testParam, prefix+"Params passed to a()");
+
+		this.construct = function(params) {
+			ran.construct = true;
+
+			assert.strictEqual(this.a, "A", prefix+"i(a,b,c).a defined in a.construct()");
+			assert.strictEqual(this.b, "B", prefix+"i(a,b,c).b defined in a.construct()");
+			assert.strictEqual(this.c, "C", prefix+"i(a,b,c).c defined in a.construct()");
+			assert.strictEqual(params, testParam, prefix+"Params passed to a.construct()");
+			
+		}
+	}
+
+	////////////////////////////////////////////////////////////
+
+	var b = function(params){
+		this.b = "B";
+		ran.b = true;
+
+		assert.strictEqual(this.a, "A", prefix+"i(a,b,c).a defined in b()");
+		assert.strictEqual(this.b, "B", prefix+"i(a,b,c).b defined in b()");
+		assert.strictEqual(this.c, undefined, prefix+"i(a,b,c).c not defined in b()");
+		assert.strictEqual(params, testParam, prefix+"Params passed to b()");
+
+	}
+
+	////////////////////////////////////////////////////////////
+
+	var c = function(params){
+		this.c = "C";
+		ran.c = true;
+
+		assert.strictEqual(this.a, "A", prefix+"i(a,b,c).a defined in c()");
+		assert.strictEqual(this.b, "B", prefix+"i(a,b,c).b defined in c()");
+		assert.strictEqual(this.c, "C", prefix+"i(a,b,c).c defined in c()");
+		assert.strictEqual(params, testParam, prefix+"Params passed to c()");
+	}
+
+	////////////////////////////////////////////////////////////
+
+	var fABC = objectfactory(options, a, b, c);
+	var i1ABC = fABC(testParam);
+
+	assert.ok(ran.a, prefix+"i(a,b,c) ran a()");
+	assert.ok(ran.b, prefix+"i(a,b,c) ran b()");
+	assert.ok(ran.c, prefix+"i(a,b,c) ran c()");
+	assert.ok(ran.construct, prefix+"i(a,b,c) ran a.construct()");
+
+}
+
+////////////////////////////////////////////////////////////////
 
 var basics = function(assert, options) {
 	options = options || [];
@@ -30,7 +159,6 @@ var basics = function(assert, options) {
 	    this.getValue = function(){ return c}
 	}
 
-	c.prototype.notPrivileged = function(){return c};
 	c.static = function(){ return "C" }
 
 	////////////////////////////////////////////////////////////
@@ -40,6 +168,9 @@ var basics = function(assert, options) {
 	var fcAB = objectfactory(options, c, fAB);
 	var fABc = objectfactory(options, fAB, c);
 
+	var fciAB = objectfactory(options, c, fAB());
+	var fiABc = objectfactory(options, fAB(), c);
+
 	var fCAB = objectfactory(options, c, a, b);
 
 	var i1ABC = fABC();
@@ -47,6 +178,9 @@ var basics = function(assert, options) {
 	var i1CAB = fCAB();
 	var i1ABc = fABc();
 	var i1cAB = fcAB();
+
+	var i1iABc = fiABc();
+	var i1ciAB = fciAB();
 
 	assert.strictEqual( typeof fABC , "function", prefix+"Factory f(a,b,c) is Function");
 	assert.strictEqual( typeof i1ABC , "object", prefix+"Instance i(a,b,c) is Object");
@@ -68,15 +202,16 @@ var basics = function(assert, options) {
 	i2ABC.a="X";
 	assert.ok( i1ABC.a === "A" && i2ABC.a === "X", prefix+"Instance i(a,b,c).a separate from i2(a,b,c).a");
 
-	assert.propEqual(i1ABC, i1ABc, prefix+"i(i(a,b),c) === i(a,b,c)");
-	assert.propEqual(i1ABC, i1cAB, prefix+"i(c, i(a,b)) === i(a,b,c)");
+	assert.propEqual(i1ABC, i1ABc, prefix+"i(f(a,b),c) === i(a,b,c)");
+	assert.propEqual(i1iABc, i1ABc, prefix+"i(i(a,b),c) === i(a,b,c)");
+	
+	if(objectfactory.debug !== true) {
+		assert.propEqual(i1ABC, i1cAB, prefix+"i(c, f(a,b)) === i(a,b,c)");
+		assert.propEqual(i1ciAB, i1cAB, prefix+"i(c, i(a,b)) === i(a,b,c)");
+	}
 }
 
-
-
-QUnit.test( "Setup", function( assert ) {
-	assert.ok( typeof objectfactory === "function", "objectfactory exists" );
-});
+////////////////////////////////////////////////////////////////
 
 QUnit.test( "Input Type Handling", function( assert ) {
 	
@@ -129,12 +264,10 @@ QUnit.test( "Input Type Handling", function( assert ) {
 
 });
 
-QUnit.test( "Options: []", function( assert ) {
-	basics(assert, ["deep", "super", "abstract"]);	
-});
-QUnit.test( 'Options: ["deep", "super", "abstract"]', function( assert ) {
-	basics(assert, ["deep", "super", "abstract"]);	
-});
+runTests("Options: []");
+runTests('Options: ["deep", "super", "abstract"]',["deep", "super", "abstract"]);
+runTests("Options: [], debug: true", [], true);
+
 
 ////////////////////////////////////////////////////////////
 
