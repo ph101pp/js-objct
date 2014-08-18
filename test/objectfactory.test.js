@@ -6,9 +6,90 @@ var runTests = function(name, options, debug){
 		basics(assert, options);
 		constructors(assert, options);	
 		instancesof(assert, options);
+		deeps(assert, options);
 		objectfactory.debug = false;	
 	});
 }
+
+var deeps = function(assert, options){
+	var prefix = "Deep: ";
+
+	var a = function(){
+		this.x = {
+    		x0 : ["Da", "Ea", "Fa"],
+    		x1 : "Aa",
+     		x2 : "Ba",
+			x3 : "Ca"
+		};
+		this.y = [
+			{
+				y0 : "Da",
+				y1 : "Ea",
+				y2 : "Fa"				
+			},
+			"Aa",
+			"Ba",
+			"Ca"
+		];
+	}
+
+	var b = {
+		x : { 
+    		x0 : ["Db", "Eb", "Fb"],
+    		x1 : "Ab",
+     		x2 : "Bb",
+			x3 : "Cb"
+		},
+		y : [
+			{
+				y0 : "Db",
+				y1 : "Eb",
+				y2 : "Fb"				
+			},
+			"Ab",
+			"Bb",
+			"Cb"
+		],
+	}
+
+
+	var fAB = objectfactory(options, a, b);
+
+	var i1AB = fAB();
+	var i2AB = fAB();
+
+	assert.deepEqual(i1AB.x, b.x, prefix+"i1(a,b).x === b.x");
+	assert.deepEqual(i1AB.y, b.y, prefix+"i1(a,b).y === b.y");
+
+	i1AB.x.x1="XX";
+	i1AB.x.x0.push("XX");
+	i1AB.y.push("XX");
+	i1AB.y[0].y1="XX";
+
+	assert.strictEqual(i1AB.x.x1, "XX", prefix+"i1(a,b).x.x1 === 'XX'");
+	assert.ok(i1AB.x.x0.indexOf("XX") >= 0, prefix+"'XX' in i1(a,b).x.x0");
+	assert.strictEqual(i1AB.y[0].y1, "XX", prefix+"i1(a,b).y.y1 === 'XX'");
+	assert.ok(i1AB.y.indexOf("XX") >= 0, prefix+"'XX' in i1(a,b).y");
+
+	if(options.indexOf("deep") < 0) { // Not deep.
+		prefix = "-Deep: ";
+
+		assert.strictEqual(i2AB.x.x1, "XX", prefix+"i2(a,b).x.x1 === 'XX'");
+		assert.ok(i2AB.x.x0.indexOf("XX") >= 0, prefix+"'XX' in i2(a,b).x.x0");
+		assert.ok(i2AB.y.indexOf("XX") >= 0, prefix+"'XX' in i2(a,b).y");
+		assert.strictEqual(i2AB.y[0].y1, "XX", prefix+"i2(a,b).y.y1 === 'XX'");
+	}
+	else { // deep.
+		prefix = "+Deep: ";
+
+		assert.strictEqual(i2AB.x.x1, "Ab", prefix+"i2(a,b).x.x1 === 'Ab'");
+		assert.ok(i2AB.x.x0.indexOf("XX") < 0, prefix+"'XX' NOT in i2(a,b).x.x0");
+		assert.ok(i2AB.y.indexOf("XX") < 0, prefix+"'XX' NOT in i2(a,b).y");
+		assert.strictEqual(i2AB.y[0].y1, "Eb", prefix+"i2(a,b).y.y1 === 'Eb'");
+	}
+}
+
+////////////////////////////////////////////////////////////////
 
 var instancesof = function(assert, options) {
 	options = options || [];
