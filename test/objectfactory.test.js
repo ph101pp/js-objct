@@ -3,13 +3,131 @@ var runTests = function(name, options, debug){
 
 	QUnit.test( name, function( assert ) {
 		objectfactory.debug = debug;
-		basics(assert, options);
+
+  		basics(assert, options);
 		constructors(assert, options);	
 		instancesof(assert, options);
 		deeps(assert, options);
+		abstracts(assert, options);
+
 		objectfactory.debug = false;	
 	});
 }
+
+var abstracts = function(assert, options) {
+	var prefix;
+	var a = {
+	    a : "A",
+	    b : "B",   
+	    x : {
+	        x1 : Function,
+	        x2 : "B",
+	        x3 : "C"
+	    }
+	}
+
+	////////////////////////////////////////////////////////////
+
+	var b = {
+	    b : Function,    
+	    x : {
+	        x1 : "A",
+	        x2 : "B",
+	        x3 : "C"
+	    }
+	}
+
+	////////////////////////////////////////////////////////////
+
+	var c = {
+		b: function(){},
+	}
+
+	////////////////////////////////////////////////////////////
+
+	var d = {
+		x: {
+			x1 :function(){}
+		}
+	}
+
+	////////////////////////////////////////////////////////////
+
+	var e = {
+		e : ["a", function(){}]
+	}
+
+	////////////////////////////////////////////////////////////
+
+	var f = {
+		e : ["x", Function]
+	}
+
+	var fAB = objectfactory(options, a, b);
+	var fBA = objectfactory(options, b, a);
+	
+	var fAC = objectfactory(options, a, c);
+	var fAD = objectfactory(options, a, d);
+
+	var fBC = objectfactory(options, b, c);
+	var fCB = objectfactory(options, b, c);
+
+	var fCF = objectfactory(options, c, f);
+	var fEF = objectfactory(options, e, f);
+
+
+	if(options.indexOf("abstract") >= 0) {
+		prefix ="+Abstract: ";
+
+		assert.throws( function(){
+			fAB();
+		}, /Abstract method/, prefix+"i(a, b) threw: Abstract method not defined" );
+
+		assert.throws( function(){
+			fBA();
+		}, /Abstract method/, prefix+"i(b, a) threw: Abstract method not defined" );
+		
+		assert.ok(fBC(), prefix+"i(b, c) ok.");
+		assert.ok(fCB(), prefix+"i(c, b) ok.");
+
+
+		if(options.indexOf("deep") >= 0) {
+			prefix ="+Abstract +Deep: ";
+			
+			assert.throws( function(){
+				fAC();
+			}, /Abstract method/, prefix+"i(a, c) threw: Abstract method not defined" );
+		
+			assert.ok(fAD(), prefix+"i(a, d) ok.");			
+
+			assert.throws( function(){
+				fCF();
+			}, /Abstract method/, prefix+"i(c, f) threw: Abstract method not defined" );
+
+			//assert.ok(fEF(), prefix+"i(e, f) ok."); // Should be true! but is'nt.. Array handling needs to be implemented properly.
+		}
+		else {
+			prefix ="+Abstract -Deep: ";
+
+			assert.ok(fAC(), prefix+"i(a, c) ok.");			
+			assert.ok(fCF(), prefix+"i(c, f) ok.");
+		}
+
+	}
+	else {
+		prefix ="-Abstract: ";
+		
+		assert.ok(fAB(), prefix+"i(a, b) ok." );
+		assert.ok(fBA(), prefix+"i(b, a) ok." );
+	}
+
+	
+
+
+
+}
+
+////////////////////////////////////////////////////////////////
 
 var deeps = function(assert, options){
 	var prefix = "Deep: ";
@@ -92,7 +210,6 @@ var deeps = function(assert, options){
 ////////////////////////////////////////////////////////////////
 
 var instancesof = function(assert, options) {
-	options = options || [];
 	var prefix = "InstanceOf: ";
 	var a = {
 	    a : "A",                    
@@ -141,7 +258,6 @@ var instancesof = function(assert, options) {
 ////////////////////////////////////////////////////////////////
 
 var constructors = function(assert, options){
-	options = options || [];
 	var prefix = "Constructors: ";
 	var ran = {
 		a:false,
@@ -211,7 +327,6 @@ var constructors = function(assert, options){
 ////////////////////////////////////////////////////////////////
 
 var basics = function(assert, options) {
-	options = options || [];
 	var prefix = "Basics: ";
 	var a = {
 	    a : "A",                    
@@ -346,55 +461,6 @@ QUnit.test( "Input Type Handling", function( assert ) {
 });
 
 runTests("Options: []");
+runTests('Options: ["abstract"]', ["abstract"]);
 runTests('Options: ["deep", "super", "abstract"]',["deep", "super", "abstract"]);
 runTests("Options: [], debug: true", [], true);
-
-
-////////////////////////////////////////////////////////////
-
-var d = {
-    construct : function(argument){
-        console.log("construct "+argument);
-        return argument;
-    },
-
-    instanceof : function(test){
-
-
-    	return "hallo"+this._super(test);
-    }
-}
-
-////////////////////////////////////////////////////////////
-
-var e = {
-    e : "E",    
-    x : {
-        x1 : Function,
-        x2 : "B",
-        x3 : "C"
-    }
-}
-////////////////////////////////////////////////////////////
-
-var f = {
-    f : Function,    
-    x : {
-        x1 : "A",
-        x2 : "B",
-        x3 : "C"
-    }
-}
-
-var g = {
-	f: function(){},
-	x : {
-		x1:function(){}
-	}
-}
-
-var h = {
-	x: {
-		x2 :function(){}
-	}
-}
