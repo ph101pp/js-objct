@@ -9,10 +9,125 @@ var runTests = function(name, options, debug){
 		instancesof(assert, options);
 		deeps(assert, options);
 		abstracts(assert, options);
+		supers(assert, options);
 
 		objectfactory.debug = false;	
 	});
 }
+
+////////////////////////////////////////////////////////////////
+
+var supers = function(assert, options) {
+	var prefix;
+
+	var a = {
+		a: function(){
+			var s ="";
+			if(typeof this._super === "function") s= this._super()+":";
+			return s+"a";			
+		},
+
+		deep: {
+			t: function(){
+				var s ="";
+				if(typeof this._super === "function") s= this._super()+":";
+				return s+"A";			
+
+			}
+		}
+	};
+
+	////////////////////////////////////////////////////////////
+
+	var b = {
+		a: function(){
+			var s ="";
+			if(typeof this._super === "function") s= this._super()+":";
+			return s+"b";			
+		},
+
+		deep: {
+			t: function(){
+				var s ="";
+				if(typeof this._super === "function") s= this._super()+":";
+				return s+"B";			
+
+			}
+		}
+	};
+
+	////////////////////////////////////////////////////////////
+
+	var c = {
+		a: function(){
+			var s ="";
+			if(typeof this._super === "function") s= this._super()+":";
+			return s+"c";			
+		},
+
+		deep: {
+			t: function(){
+				var s ="";
+				if(typeof this._super === "function") s= this._super()+":";
+				return s+"C";			
+
+			}
+		}
+	};
+
+	////////////////////////////////////////////////////////////
+
+	var d ={
+		_super :"hallo"
+	}
+
+	////////////////////////////////////////////////////////////
+
+	var fABC = objectfactory(options, a, b, c);
+
+	var iABC = fABC();
+
+	if(options.indexOf("super") >= 0) { // super
+		prefix = "+Super: ";
+
+		assert.strictEqual(iABC.a(), "a:b:c", prefix+"iABC.a() === a:b:c");
+
+		if(options.indexOf("deep") >= 0) { // deep super
+			prefix = "+Super +Deep: ";
+
+//			assert.strictEqual(iABC.deep.t(), "A:B:C", prefix+"iABC.deep.t() === A:B:C");  // PROBLEM: Deep + Super need to be implemented/defined properly
+		
+		}
+		else { // not Deep
+			prefix = "+Super -Deep: ";
+	
+			assert.strictEqual(iABC.deep.t(), "C", prefix+"iABC.deep.t() === C");
+
+		}
+
+	}
+	else { // Not Super
+		prefix = "-Super: ";
+
+		assert.strictEqual(iABC.a(), "c", prefix+"iABC.a() === c");
+	
+		if(options.indexOf("deep") >= 0) { // deep super
+			prefix = "-Super +Deep: ";
+
+			assert.strictEqual(iABC.deep.t(), "C", prefix+"iABC.deep.t() === C");
+		}
+		else { // not Deep
+			prefix = "-Super -Deep: ";
+			
+			assert.strictEqual(iABC.deep.t(), "C", prefix+"iABC.deep.t() === C");
+
+		}
+
+	}
+
+}
+
+////////////////////////////////////////////////////////////////
 
 var abstracts = function(assert, options) {
 	var prefix;
@@ -104,7 +219,7 @@ var abstracts = function(assert, options) {
 				fCF();
 			}, /Abstract method/, prefix+"i(c, f) threw: Abstract method not defined" );
 
-			//assert.ok(fEF(), prefix+"i(e, f) ok."); // Should be true! but is'nt.. Array handling needs to be implemented properly.
+			//assert.ok(fEF(), prefix+"i(e, f) ok."); // PROBLEM: Should be true! but is'nt.. Array handling needs to be implemented properly.
 		}
 		else {
 			prefix ="+Abstract -Deep: ";
@@ -462,5 +577,7 @@ QUnit.test( "Input Type Handling", function( assert ) {
 
 runTests("Options: []");
 runTests('Options: ["abstract"]', ["abstract"]);
+runTests('Options: ["super", "deep"]', ["super","deep"]);
+runTests('Options: ["super"]', ["super"]);
 runTests('Options: ["deep", "super", "abstract"]',["deep", "super", "abstract"]);
 runTests("Options: [], debug: true", [], true);
