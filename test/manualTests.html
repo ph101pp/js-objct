@@ -27,7 +27,7 @@
 			b.prototype.getValue = function(){ 
 
 				
-				return this._super()+this.b 
+				return this.b 
 
 			}
 			
@@ -92,6 +92,22 @@
 					x2 :function(){}
 				}
 			}
+
+			var d=function(param){
+			};
+			d.prototype.d = "D";
+			d.prototype.getValue = function(){ return this.d }; 
+			
+			var fACB = new objectfactory(a, c, b);
+
+
+
+			var i1ACB = fACB("test");
+			var i2ACB = fACB("test");
+
+			i1ACB.b ="x";
+
+			console.log(i1ACB, i2ACB);
 
 		</script>		
 	</head>
