@@ -36,7 +36,6 @@ var extend = function(assert, options) {
 	////////////////////////////////////////////////////////////
 
 	var c = function (param){    
-			assert.strictEqual( param, arg, prefix+" Arguments passed to constructor");
 	    var c = "C";    // private property
 	    this.getC = function(){ return c }  
 	    this.getValue = function(){ return c}
@@ -46,9 +45,9 @@ var extend = function(assert, options) {
 
 	////////////////////////////////////////////////////////////
 
-	var fABC = objectfactory(a, b, c);
+	var fABC = objectfactory.extend(a, b, c);
 	var i1ABC = fABC(arg);
-	var i2ABC = fABC(arg);
+	var i2ABC = new objectfactory.extend(a, b, c);
 
 
 	assert.strictEqual( typeof fABC , "function", prefix+"Factory f(a,b,c) is Function");
@@ -80,7 +79,10 @@ var extend = function(assert, options) {
     }
 	}
 
-	var fCBA = objectfactory(function(){return c;}, b, a);
+	var fCBA = objectfactory.extend(function(param){
+		assert.strictEqual( param, arg, prefix+" Arguments passed to constructor");
+		return c;
+	}, b, a);
 	var i1CBA = fCBA(arg);
 
 	assert.strictEqual( typeof fCBA , "function", prefix+"Factory f(c, b, a) is Function");
@@ -107,16 +109,14 @@ var extend = function(assert, options) {
 
 	c.static = function(){ return "C" }
 
-	var d = function(param){
-		assert.strictEqual( param, arg, prefix+" Arguments passed to constructor");
-	}
+	var d = function(param){}
 	d.prototype.d = "D";
 	d.prototype.getValue = function(){ return this.d }; 
 
 
-	var fDACB = objectfactory(d, a, c, b);
+	var fDACB = objectfactory.extend(d, a, c, b);
 	var i1DACB = fDACB(arg);
-	var i2DACB = fDACB(arg);
+	var i2DACB = new objectfactory.extend(d, a, c, b);
 
 	assert.ok(i1DACB instanceof d, prefix+" i(d,a,c,b) instanceof d");
 
@@ -154,7 +154,6 @@ var news = function(assert, options) {
 	////////////////////////////////////////////////////////////
 
 	var c = function (param){    
-		assert.strictEqual( param, arg, prefix+" Arguments passed to constructor");
     var c = "C";    // private property
     this.getC = function(){ return c }  
     this.getValue = function(){ return c}
@@ -164,18 +163,18 @@ var news = function(assert, options) {
 
 	////////////////////////////////////////////////////////////
 
-	var fABC = new objectfactory(a, b, c);
-	var fAB = new objectfactory(a, b);
-	var fcAB = new objectfactory(c, fAB);
-	var fABc = new objectfactory(fAB, c);
+	var fABC = objectfactory(a, b, c);
+	var fAB = objectfactory(a, b);
+	var fcAB = objectfactory(c, fAB);
+	var fABc = objectfactory(fAB, c);
 
-	var fciAB = new objectfactory(c, fAB());
-	var fiABc = new objectfactory(fAB(), c);
+	var fciAB = objectfactory(c, fAB());
+	var fiABc = objectfactory(fAB(), c);
 
-	var fCAB = new objectfactory(c, a, b);
+	var fCAB = objectfactory(c, a, b);
 
 	var i1ABC = fABC(arg);
-	var i2ABC = fABC(arg);
+	var i2ABC = new objectfactory(a, b, c);
 	var i1CAB = fCAB(arg);
 	var i1ABc = fABc(arg);
 	var i1cAB = fcAB(arg);
@@ -215,10 +214,10 @@ var news = function(assert, options) {
 var inputs = function( assert ) {
 	
 	assert.ok(objectfactory({},function(){},{})(), "Ok: N Params - Objects and Functions" );
-	assert.ok(new objectfactory(function(){},{})(), "Ok: First Params Function Return ommitted when !extend -> new");
+	assert.ok(objectfactory(function(){return "";},{})(), "Ok: First Params Function Return ommitted when !extend -> new");
 	assert.ok(objectfactory(function(){return {}},{},function(){},{})(), "Ok: First Params Function Return - Object" );
 	assert.ok(objectfactory(function(){return function(){}},{},function(){},{})(), "Ok: First Params Function Return - Function" );
-	assert.ok(objectfactory(true), "Ok: 1st Param - Boolean" );
+	// assert.ok(objectfactory(true), "Ok: 1st Param - Boolean" );
 
 	assert.throws( function(){
 		objectfactory([])()
@@ -251,13 +250,12 @@ var inputs = function( assert ) {
 	assert.throws( function(){
 		objectfactory(function(){},{}, true)()
 	}, /Unexpected 'boolean'/, "Threw: Ntn Param - Unexpected Boolean" );	
-
 }
 
 
 QUnit.test( "Input Type Handling", inputs);
-QUnit.test( "Basics new: new f()", news);
-QUnit.test( "Basics extend: f()", extend);
+QUnit.test( "Basics objct()", news);
+QUnit.test( "Basics extend: objct.extend()", extend);
 
 // runTests('Options: ["abstract"]', ["abstract"]);
 // runTests('Options: ["super", "deep"]', ["super","deep"]);
