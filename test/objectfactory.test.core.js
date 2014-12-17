@@ -1,14 +1,3 @@
-var runTests = function(name, options, debug){
-	options = options || [];
-
-	QUnit.test( name, function( assert ) {
-
-  	news(assert, options);
-  	extend(assert, options);
-
-	});
-}
-
 ////////////////////////////////////////////////////////////////
 var extend = function(assert, options) {
 	var prefix = "Basics Extend: ";
@@ -253,12 +242,6 @@ var inputs = function( assert ) {
 }
 
 
-QUnit.test( "Input Type Handling", inputs);
-QUnit.test( "Basics objct()", news);
-QUnit.test( "Basics extend: objct.extend()", extend);
-
-// runTests('Options: ["abstract"]', ["abstract"]);
-// runTests('Options: ["super", "deep"]', ["super","deep"]);
-// runTests('Options: ["super"]', ["super"]);
-// runTests('Options: ["deep", "super", "abstract"]',["deep", "super", "abstract"]);
-// runTests("Options: [], debug: true", [], true);
+QUnit.test( "core - Input Type Handling", inputs);
+QUnit.test( "core - Basics objct()", news);
+QUnit.test( "core - Basics extend: objct.extend()", extend);
