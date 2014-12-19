@@ -242,6 +242,6 @@ var inputs = function( assert ) {
 }
 
 
-QUnit.test( "core - Input Type Handling", inputs);
-QUnit.test( "core - Basics objct()", news);
-QUnit.test( "core - Basics extend: objct.extend()", extend);
+QUnit.test( "Core - Input Type Handling", inputs);
+QUnit.test( "Core - Basics objct()", news);
+QUnit.test( "Core - Basics extend: objct.extend()", extend);
