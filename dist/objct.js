@@ -1,0 +1,8 @@
+/*! 
+ * objct - v0.x (https://github.com/greenish/js-objct)
+ * 
+ * Copyright (c) 2015 Philipp Adrian (www.philippadrian.com)
+ *
+ * The MIT Licence (http://opensource.org/licenses/MIT)
+ */
+!function(t){"use strict";var n=function(){},o=function(){return{}},e="jmuMMRs6AUUG29/3HXcs8Z0ofQlkG0hqiNAJlZq2hHYakB/QmyfnRuCsh2yf+c6m",r="function",i="object",a=Array.toString(),u=Array.isArray||function(t){return typeof t==i&&"[object Array]"===Object.prototype.toString.call(t)||"constructor"in t&&String(t.constructor)===a},c=function(t){var n=typeof t;return n===r||n===i&&!u(t)},f=function(t,o){var e,i,a=typeof t===r;return n.prototype=a?t.prototype:t,e=new n,n.prototype=null,a&&(i=t.apply(e,o),c(i))?i:e},p=function(t,n){for(var o in n)t[o]=n[o]},s=function(t,n){var o,e=1,i=typeof t[0].obj===r?f(t[0].obj,n.a):t[0].obj;for(n.i=n.i||i;e<t.length;e++)o=t[e].isFactory?t[e].obj.call(y,t[e],n):t[e].obj,typeof o===r?(p(i,o.prototype),o.apply(i,n.a)):p(i,o);return i},y=function(){return Array.prototype.splice.call(arguments,0,0,o),y.extend.apply(this,arguments)};y.extend=function(){for(var t,n=function(t,n){if(this&&this.hash===e)return t.m=o.m,s(o.m,n);o.a=arguments;var r=s(o.m,o);return r},o={a:[],m:[],i:!1},a=arguments,u=this instanceof y||this instanceof y.extend,f=0;f<a.length;f++){if(t=typeof a[f],!c(a[f]))throw"objct: Unexpected '"+(t===i?"array":t)+"'! Only 'functions' and 'objects' can be used with the objct.";o.m.push({obj:a[f],isFactory:t===r&&""+a[f]===l}),u||t!==r||p(n,a[f],o)}return u?new n:n},y.hash=e;var l=""+y.extend();t.exports=y,typeof define===r&&define.amd?define(function(){return y}):typeof window===i&&(window.objct=y)}("undefined"==typeof module?{}:module);

@@ -3,7 +3,7 @@
   "version": "0.0.2",
   "author": "Philipp Adrian <hello@philippadrian.com>",
   "description": "A fast modular oop-inheritance library that supports closures and abstract methods. Works nicely with browserify, CommonJS or just vanilla JavaScript.",
-  "main": "lib/objct.js",
+  "main": "dist/objct.min.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/greenish/js-objct.git"
@@ -44,6 +44,8 @@
     "gulp-bump": "^0.1.11",
     "gulp-git": "^0.4.0",
     "node-qunit-phantomjs": "^0.2.2",
-    "qunitjs": "^1.15.0"
+    "qunitjs": "^1.15.0",
+    "browserify": "^8.0.x",    
+    "vinyl-transform": "^1.0.x"
   }
 }

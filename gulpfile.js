@@ -3,28 +3,73 @@ var gulp = require("gulp"),
     uglify = require('gulp-uglify'),
     notify = require('gulp-notify'),
     rename = require('gulp-rename'),
+    _browserify  = require('browserify'),
+    transform    = require('vinyl-transform'),
     git = require('gulp-git'),
     qunit = require('node-qunit-phantomjs'),
     bump = require('gulp-bump');
 
+///////////////////////////////////////////////////////////////////////////////
 
-gulp.task('scripts', function() {
-  return gulp.src('lib/*.js')
-    .pipe(jshint())
-    .pipe(jshint.reporter('default'))
-    // .pipe(gulp.dest('dist/'))
-    .pipe(rename({suffix: '.min'}))
-    .pipe(uglify({
-    	"preserveComments" : "some"
-    }))
-    .pipe(gulp.dest('dist/'))
-    .pipe(notify({ message: 'Scripts task complete' }));
-});
+gulp.task('scripts', scripts);
+gulp.task('test', ["scripts"], test);
+gulp.task('watch', watch);
 
-gulp.task('test', function() {
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+function browserify(){
+  return transform(function(filename){
+    var b =  _browserify(filename);
+    return b.bundle();
+  });
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+function scripts() {
+    gulp.src('lib/objct.js')
+        .pipe(jshint())
+        .pipe(jshint.reporter('default'))
+        .pipe(uglify({
+            "preserveComments" : "some"
+        }))
+        .pipe(gulp.dest('dist/'));
+
+    gulp.src('lib/objct.e.js')
+        .pipe(jshint())
+        .pipe(jshint.reporter('default'))
+        .pipe(uglify({
+            "preserveComments" : "some"
+        }))
+        .pipe(gulp.dest('e/'))
+        .pipe(gulp.dest('dist/'))
+        ;
+
+    gulp.src(['lib/e/**/*.js'])
+        .pipe(jshint())
+        .pipe(jshint.reporter('default'))
+        .pipe(browserify())
+        .pipe(uglify({
+            "preserveComments" : "some"
+        }))
+        .pipe(gulp.dest('e'))
+        .pipe(notify({ message: 'Scripts task complete' }))
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+function test() {
     qunit('./test/index.html');
-});
+}
 
+///////////////////////////////////////////////////////////////////////////////
+
+function watch(){
+    gulp.watch(["./package.json", "./lib/**/*.js"], ['scripts']);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 
 /* Deploy - Test when next deploy ready*/
 
