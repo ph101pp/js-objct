@@ -43,7 +43,6 @@ function scripts() {
             "preserveComments" : "some"
         }))
         .pipe(gulp.dest('e/'))
-        .pipe(gulp.dest('dist/'))
         ;
 
     gulp.src(['lib/e/**/*.js'])
@@ -54,6 +53,8 @@ function scripts() {
             "preserveComments" : "some"
         }))
         .pipe(gulp.dest('e'))
+        .pipe(rename('objct.e.js'))
+        .pipe(gulp.dest('dist'))
         .pipe(notify({ message: 'Scripts task complete' }))
 }
 
