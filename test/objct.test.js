@@ -34,9 +34,9 @@ var extend = function(assert, options) {
 
 	////////////////////////////////////////////////////////////
 
-	var fABC = objectfactory.extend(a, b, c);
+	var fABC = objct.extend(a, b, c);
 	var i1ABC = fABC(arg);
-	var i2ABC = new objectfactory.extend(a, b, c);
+	var i2ABC = new objct.extend(a, b, c);
 
 
 	assert.strictEqual( typeof fABC , "function", prefix+"Factory f(a,b,c) is Function");
@@ -68,7 +68,7 @@ var extend = function(assert, options) {
     }
 	}
 
-	var fCBA = objectfactory.extend(function(param){
+	var fCBA = objct.extend(function(param){
 		assert.strictEqual( param, arg, prefix+" Arguments passed to constructor");
 		return c;
 	}, b, a);
@@ -103,9 +103,9 @@ var extend = function(assert, options) {
 	d.prototype.getValue = function(){ return this.d }; 
 
 
-	var fDACB = objectfactory.extend(d, a, c, b);
+	var fDACB = objct.extend(d, a, c, b);
 	var i1DACB = fDACB(arg);
-	var i2DACB = new objectfactory.extend(d, a, c, b);
+	var i2DACB = new objct.extend(d, a, c, b);
 
 	assert.ok(i1DACB instanceof d, prefix+" i(d,a,c,b) instanceof d");
 
@@ -152,18 +152,18 @@ var news = function(assert, options) {
 
 	////////////////////////////////////////////////////////////
 
-	var fABC = objectfactory(a, b, c);
-	var fAB = objectfactory(a, b);
-	var fcAB = objectfactory(c, fAB);
-	var fABc = objectfactory(fAB, c);
+	var fABC = objct(a, b, c);
+	var fAB = objct(a, b);
+	var fcAB = objct(c, fAB);
+	var fABc = objct(fAB, c);
 
-	var fciAB = objectfactory(c, fAB());
-	var fiABc = objectfactory(fAB(), c);
+	var fciAB = objct(c, fAB());
+	var fiABc = objct(fAB(), c);
 
-	var fCAB = objectfactory(c, a, b);
+	var fCAB = objct(c, a, b);
 
 	var i1ABC = fABC(arg);
-	var i2ABC = new objectfactory(a, b, c);
+	var i2ABC = new objct(a, b, c);
 	var i1CAB = fCAB(arg);
 	var i1ABc = fABc(arg);
 	var i1cAB = fcAB(arg);
@@ -202,42 +202,42 @@ var news = function(assert, options) {
 
 var inputs = function( assert ) {
 	
-	assert.ok(objectfactory({},function(){},{})(), "Ok: N Params - Objects and Functions" );
-	assert.ok(objectfactory(function(){return "";},{})(), "Ok: First Params Function Return ommitted when !extend -> new");
-	assert.ok(objectfactory(function(){return {}},{},function(){},{})(), "Ok: First Params Function Return - Object" );
-	assert.ok(objectfactory(function(){return function(){}},{},function(){},{})(), "Ok: First Params Function Return - Function" );
-	// assert.ok(objectfactory(true), "Ok: 1st Param - Boolean" );
+	assert.ok(objct({},function(){},{})(), "Ok: N Params - Objects and Functions" );
+	assert.ok(objct(function(){return "";},{})(), "Ok: First Params Function Return ommitted when !extend -> new");
+	assert.ok(objct(function(){return {}},{},function(){},{})(), "Ok: First Params Function Return - Object" );
+	assert.ok(objct(function(){return function(){}},{},function(){},{})(), "Ok: First Params Function Return - Function" );
+	// assert.ok(objct(true), "Ok: 1st Param - Boolean" );
 
 	assert.throws( function(){
-		objectfactory([])()
+		objct([])()
 	}, /Unexpected 'array'/, "Threw: 1st Param - Unexpected Array" );
 
 	assert.throws( function(){
-		objectfactory("")()
+		objct("")()
 	}, /Unexpected 'string'/, "Threw: 1st Param - Unexpected String" );
 
 	assert.throws( function(){
-		objectfactory(1)()
+		objct(1)()
 	}, /Unexpected 'number'/, "Threw: 1st Param - Unexpected Number" );
 
 	// assert.throws( function(){
-	// 	objectfactory(false)()
+	// 	objct(false)()
 	// }, /Unexpected 'boolean'/, "Threw: 1st Param - Unexpected Boolean" );
 
 	assert.throws( function(){
-		objectfactory(function(){},{}, [])()
+		objct(function(){},{}, [])()
 	}, /Unexpected 'array'/, "Threw: Ntn Param - Unexpected Array" );
 
 	assert.throws( function(){
-		objectfactory(function(){},{}, "")()
+		objct(function(){},{}, "")()
 	}, /Unexpected 'string'/, "Threw: Ntn Param - Unexpected String" );
 
 	assert.throws( function(){
-		objectfactory(function(){},{}, 1)()
+		objct(function(){},{}, 1)()
 	}, /Unexpected 'number'/, "Threw: Ntn Param - Unexpected Number" );	
 
 	assert.throws( function(){
-		objectfactory(function(){},{}, true)()
+		objct(function(){},{}, true)()
 	}, /Unexpected 'boolean'/, "Threw: Ntn Param - Unexpected Boolean" );	
 }
 

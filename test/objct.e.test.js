@@ -74,9 +74,9 @@ var calls = function(assert){
     return "decorateProperty2";
   }    
   
-  var newPropertyDecorator1 = objectfactory.decorator(decorateProperty1);
-  var newPropertyDecorator2 = objectfactory.decorator(decorateProperty2);
-  var newModuleDecorator = objectfactory.decorator(decorateModule);
+  var newPropertyDecorator1 = objct.decorator(decorateProperty1);
+  var newPropertyDecorator2 = objct.decorator(decorateProperty2);
+  var newModuleDecorator = objct.decorator(decorateModule);
 
   var object = {
     prop1 : newPropertyDecorator1(args1, args2, args3),
@@ -84,24 +84,24 @@ var calls = function(assert){
     prop3 : "test"
   };
  
-  var factory1  = objectfactory(a, object, b);
+  var factory1  = objct(a, object, b);
   var instance1 = factory1(args1);
 
   assert.strictEqual(instance1.prop1, object.prop1, "factory without enabling decorators: Decorator not executed");
 
-  var factory2  = objectfactory(true, a, object, b);
+  var factory2  = objct(true, a, object, b);
   var instance2 = factory2(args1);
 
   assert.strictEqual(instance2.prop1, "decorateProperty1", "factory with enabling decorators: Decorators executed, return value bound to property");
 
-  var factory3  = objectfactory(true, a, newModuleDecorator(b, args1, args2, args3));
+  var factory3  = objct(true, a, newModuleDecorator(b, args1, args2, args3));
   var instance3 = factory3(args1);
-  var factory5  = objectfactory(true, a, b);
+  var factory5  = objct(true, a, b);
   var instance5 = factory5(args1);
   
   assert.propEqual(instance5, instance3, "passing module through decorator unchanged");
 
-  var factory4  = objectfactory.extend(true, reference, a, {
+  var factory4  = objct.extend(true, reference, a, {
     prop : newPropertyDecorator2()
   }, b );
   var instance4 = factory4(args1);
@@ -132,17 +132,17 @@ var basic = function(assert){
     assert.strictEqual( param5 , undefined, "5th param in decorate is undefined");
   }
 
-  var newDecorator = objectfactory.decorator(decorate);
+  var newDecorator = objct.decorator(decorate);
 
   var decorated = newDecorator(args1, args2, args3);
 
-  assert.strictEqual( typeof objectfactory.decorator , "function", "objectfactory.decorator is funciton");
-  assert.strictEqual( typeof newDecorator , "function", "newDecorator = objectfactory.decorator() is function");
+  assert.strictEqual( typeof objct.decorator , "function", "objct.decorator is funciton");
+  assert.strictEqual( typeof newDecorator , "function", "newDecorator = objct.decorator() is function");
   assert.strictEqual( typeof decorated , "function", "decorated = newDecorator() is function");
-  assert.strictEqual( decorated.hash , objectfactory.hash, "decorated has .hash property");
+  assert.strictEqual( decorated.hash , objct.hash, "decorated has .hash property");
 
   assert.throws( function(){
-    objectfactory.decorator("string");
+    objct.decorator("string");
   }, /Unexpected 'string'/, "Threw: Unexpected Parameter -> needs function" );
 
 
@@ -153,5 +153,5 @@ var basic = function(assert){
 ////////////////////////////////////////////////////////////////
 
 QUnit.test( "Decorator – Basic function behavior", basic);
-QUnit.test( "Decorator – Calls and Params from objectfactory", calls);
+QUnit.test( "Decorator – Calls and Params from objct", calls);
 QUnit.test( "Decorator – Hooks - Bind/Unbind", hooks);
