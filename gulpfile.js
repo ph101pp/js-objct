@@ -29,14 +29,14 @@ function browserify(){
 ///////////////////////////////////////////////////////////////////////////////
 
 function copyE(){
-    gulp.src('lib/objct.e.js')
-        .pipe(jshint())
-        .pipe(jshint.reporter('default'))
-        .pipe(uglify({
-            "preserveComments" : "some"
-        }))
-        .pipe(gulp.dest('e/'))
-        ;
+    // gulp.src('lib/objct.e.js')
+    //     .pipe(jshint())
+    //     .pipe(jshint.reporter('default'))
+    //     .pipe(uglify({
+    //         "preserveComments" : "some"
+    //     }))
+    //     .pipe(gulp.dest('e/'))
+    //     ;
 
     gulp.src(['lib/e/**/*.js'])
         .pipe(jshint())
