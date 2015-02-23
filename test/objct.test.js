@@ -220,9 +220,9 @@ var inputs = function( assert ) {
 		objct(1)()
 	}, /Unexpected 'number'/, "Threw: 1st Param - Unexpected Number" );
 
-	// assert.throws( function(){
-	// 	objct(false)()
-	// }, /Unexpected 'boolean'/, "Threw: 1st Param - Unexpected Boolean" );
+	assert.throws( function(){
+		objct(false)()
+	}, /Unexpected 'boolean'/, "Threw: 1st Param - Unexpected Boolean" );
 
 	assert.throws( function(){
 		objct(function(){},{}, [])()

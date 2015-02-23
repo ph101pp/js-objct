@@ -65,7 +65,7 @@ var hooks = function(assert) {
     return hello;
   });
 
-  var i  = new objct(true, {
+  var i  = new objct.e({
     a:decoratorA("A0"), 
     b:decoratorB("B0")
   }, a,b);
@@ -163,22 +163,20 @@ var calls = function(assert){
 
   assert.strictEqual(instance1.prop1, object.prop1, "factory without enabling decorators: Decorator not executed");
 
-  var factory2  = objct(true, a, object, b);
+  var factory2  = objct.e(a, object, b);
   var instance2 = factory2(args1);
 
   assert.strictEqual(instance2.prop1, "decorateProperty1", "factory with enabling decorators: Decorators executed, return value bound to property");
 
-  var factory3  = objct(true, a, newModuleDecorator(b, args1, args2, args3));
+  var factory3  = objct.e(a, newModuleDecorator(b, args1, args2, args3));
   var instance3 = factory3(args1);
-  var factory5  = objct(true, a, b);
-  var instance5 = factory5(args1);
+  var instance5  = new objct.e(a, b);
   
   assert.propEqual(instance5, instance3, "passing module through decorator unchanged");
 
-  var factory4  = objct.extend(true, reference, a, {
+  var instance4  = new objct.e.extend(reference, a, {
     prop : newPropertyDecorator2()
   }, b );
-  var instance4 = factory4(args1);
  
 
 }
