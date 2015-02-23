@@ -1,5 +1,74 @@
 var hooks = function(assert) {
   assert.ok(true);
+  var a = {
+    a : "A1",
+    b : "B1"                
+  }
+
+  ////////////////////////////////////////////////////////////
+
+  var b =  function(){};
+  b.prototype.b = "B2";
+  b.prototype.a = "A2";
+
+  ////////////////////////////////////////////////////////////
+
+  var changeA = [];
+  var changeAll = [];
+  var changeB = [];
+  var constructA = [];
+  var constructB = [];
+  var types = [];
+
+  ////////////////////////////////////////////////////////////
+
+  var decoratorA = objct.decorator(function(data, hello){
+    data.bind("onChange.a", function(data){
+      changeA.push(data);
+    });
+    data.bind("onConstruct", function(data){
+      types.push("onConstruct");
+      constructA.push(data);
+    });
+
+    data.bind("onChange", function(data){
+      types.push("onChange70");
+    },70);
+    data.bind("onChange", function(data){
+      changeAll.push(data);
+      types.push("onChange50");
+    });
+    data.bind("onChange", function(data){
+      types.push("onChange20");
+    },20);
+
+    return hello;
+  });
+
+  var decoratorB = objct.decorator(function(data, hello){
+    var construct=function(data){
+      constructB.push(data);
+    };
+    var change = function(that){
+      changeB.push(that);
+      data.unbind("onChange.b", change);      
+      data.unbind("onConstruct", construct);
+    };
+
+    data.bind("onChange.b", change);
+    data.bind("onConstruct", construct);
+    return hello;
+  });
+
+  var i  = new objct(true, {
+    a:decoratorA("A0"), 
+    b:decoratorB("B0")
+  }, a,b);
+
+  ////////////////////////////////////////////////////////////
+
+  console.log(types,changeA, changeAll, changeB,constructA,constructB);
+
 }
 
 ////////////////////////////////////////////////////////////////
