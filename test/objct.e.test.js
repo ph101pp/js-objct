@@ -18,6 +18,7 @@ var hooks = function(assert) {
   var changeB = [];
   var constructA = [];
   var constructB = [];
+  var constructC = [];
   var types = [];
 
   ////////////////////////////////////////////////////////////
@@ -27,7 +28,7 @@ var hooks = function(assert) {
       changeA.push(data);
     });
     data.bind("onConstruct", function(data){
-      types.push("onConstruct");
+      types.push("onConstructA");
       constructA.push(data);
     });
 
@@ -57,6 +58,10 @@ var hooks = function(assert) {
 
     data.bind("onChange.b", change);
     data.bind("onConstruct", construct);
+    data.bind("onConstruct", function(){
+      types.push("onConstructC");
+      constructC.push(data);
+    }, 10);
     return hello;
   });
 
