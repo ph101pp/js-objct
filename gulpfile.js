@@ -6,7 +6,7 @@ var gulp = require("gulp"),
     _browserify  = require('browserify'),
     transform    = require('vinyl-transform'),
     git = require('gulp-git'),
-    qunit = require('node-qunit-phantomjs'),
+    qunit = require('gulp-qunit'),
     bump = require('gulp-bump');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -72,7 +72,8 @@ function scripts() {
 ///////////////////////////////////////////////////////////////////////////////
 
 function test() {
-    qunit('./test/index.html');
+    gulp.src('test/objct.html').
+        pipe(qunit());
 }
 
 ///////////////////////////////////////////////////////////////////////////////

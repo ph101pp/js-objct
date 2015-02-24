@@ -43,9 +43,8 @@
     "gulp-rename": "^1.2.0",
     "gulp-bump": "^0.1.11",
     "gulp-git": "^0.4.0",
-    "node-qunit-phantomjs": "^0.2.2",
-    "qunitjs": "^1.15.0",
+    "gulp-qunit" :"^1.2.1",
     "browserify": "^8.0.x",    
-    "vinyl-transform": "^1.0.x"
+    "vinyl-transform": "^1.0.0"
   }
 }
