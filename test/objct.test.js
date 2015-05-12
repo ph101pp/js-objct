@@ -153,9 +153,10 @@ var news = function(assert, options) {
 	////////////////////////////////////////////////////////////
 
 	var fABC = objct(a, b, c);
+	var fABCx = objct([[a, b], c]);
 	var fAB = objct(a, b);
 	var fcAB = objct(c, fAB);
-	var fABc = objct(fAB, c);
+	var fABc = objct([fAB, c]);
 
 	var fciAB = objct(c, fAB());
 	var fiABc = objct(fAB(), c);
@@ -163,6 +164,8 @@ var news = function(assert, options) {
 	var fCAB = objct(c, a, b);
 
 	var i1ABC = fABC(arg);
+	var i1ABCx = fABCx(arg);
+
 	var i2ABC = new objct(a, b, c);
 	var i1CAB = fCAB(arg);
 	var i1ABc = fABc(arg);
@@ -170,6 +173,9 @@ var news = function(assert, options) {
 
 	var i1iABc = fiABc(arg);
 	var i1ciAB = fciAB(arg);
+
+
+	assert.propEqual(i1ABC, i1ABCx, prefix+" i([[a,b],c]) === i(a,b,c) – Arrays are handled as grouping of Objects/Functions without further effect.");
 
 	assert.strictEqual( typeof fABC , "function", prefix+"Factory f(a,b,c) is Function");
 	assert.strictEqual( typeof i1ABC , "object", prefix+"Instance i(a,b,c) is Object");
@@ -202,15 +208,12 @@ var news = function(assert, options) {
 
 var inputs = function( assert ) {
 	
-	assert.ok(objct({},function(){},{})(), "Ok: N Params - Objects and Functions" );
+	assert.ok(objct({},function(){},{},[function(){},{}])(), "Ok: N Params - Objects and Functions and Arrays" );
 	assert.ok(objct(function(){return "";},{})(), "Ok: First Params Function Return ommitted when !extend -> new");
 	assert.ok(objct(function(){return {}},{},function(){},{})(), "Ok: First Params Function Return - Object" );
 	assert.ok(objct(function(){return function(){}},{},function(){},{})(), "Ok: First Params Function Return - Function" );
 	// assert.ok(objct(true), "Ok: 1st Param - Boolean" );
 
-	assert.throws( function(){
-		objct([])()
-	}, /Unexpected 'array'/, "Threw: 1st Param - Unexpected Array" );
 
 	assert.throws( function(){
 		objct("")()
@@ -225,8 +228,16 @@ var inputs = function( assert ) {
 	}, /Unexpected 'boolean'/, "Threw: 1st Param - Unexpected Boolean" );
 
 	assert.throws( function(){
-		objct(function(){},{}, [])()
-	}, /Unexpected 'array'/, "Threw: Ntn Param - Unexpected Array" );
+		objct([""])()
+	}, /Unexpected 'string'/, "Threw: Unexpected String in array" );
+
+	assert.throws( function(){
+		objct([1])()
+	}, /Unexpected 'number'/, "Threw: Unexpected Number in array" );
+
+	assert.throws( function(){
+		objct([false])()
+	}, /Unexpected 'boolean'/, "Threw: Unexpected Boolean in array" );
 
 	assert.throws( function(){
 		objct(function(){},{}, "")()
