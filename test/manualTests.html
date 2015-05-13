@@ -3,7 +3,7 @@
  	<head>
 		<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
 		<title>Test</title>
-		<script type="text/javascript" src="../lib/objct.js"></script>
+		<script type="text/javascript" src="../lib/objct.e.js"></script>
 
 		<script type="text/javascript">
 			
@@ -97,15 +97,26 @@
 			d.prototype.d = "D";
 			d.prototype.getValue = function(){ return this.d }; 
 			
-			var fACB = objct(a, [c, b]);
+
+			objct.e.deep = objct.decorator(function(data, obj){
+			    console.log("decorated", this, arguments)
+			 
+			    return obj;
+			  
+			 });
 
 
-			var i1ACB = fACB("test");
-			var i2ACB = fACB("test");
+			var fACB = objct.e(a, objct.e.deep(b));
+			console.log("a");
+		 fACB = objct.e(c, fACB);
 
-			i1ACB.b ="x";
+		 	console.log("b");
+			var i1ACB = fACB();
+			// var i2ACB = fACB("test");
 
-			console.log(i1ACB, i2ACB);
+			// i1ACB.b ="x";
+
+			console.log(i1ACB);
 
 		</script>		
 	</head>
