@@ -106,9 +106,9 @@
 			 });
 
 
-			var fACB = objct.e(a, objct.e.deep(b));
+			var fACB = objct.e.extend(objct.e.deep(b), a);
 			console.log("a");
-		 fACB = objct.e(c, fACB);
+		 fACB = objct.e.extend(fACB,c);
 
 		 	console.log("b");
 			var i1ACB = fACB();
