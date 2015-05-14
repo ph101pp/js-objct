@@ -1,5 +1,13 @@
 var objct = require("../lib/objct.e");
 
+////////////////////////////////////////////////////////////////////////////////
+// isArray fallback for ie<9
+var strArray = Array.toString();
+var isArray = Array.isArray || function (obj) {
+  return (typeof obj == strObject 
+    && Object.prototype.toString.call(obj) === "[object Array]")
+    || ("constructor" in obj && String(obj.constructor) === strArray);
+};
 ///////////////////////////////////////////////////////////////////////////////
 
 var deep = module.exports = objct.decorator(function(data, obj){
