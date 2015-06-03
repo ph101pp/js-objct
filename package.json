@@ -32,7 +32,8 @@
     "method",
     "function",
     "factory",
-    "instanceof"
+    "instanceof",
+    "objectfactory"
   ],
   "license": "MIT",
   "devDependencies": {
