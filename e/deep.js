@@ -2,7 +2,7 @@ var objct = require("../lib/objct.e");
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var deep = module.exports = objct.decorator(function(data, obj){
+var deep = module.exports = objct.e.decorator(function(data, obj){
   obj = objct.isObjct(obj) ? obj.apply(null, data.args): obj;
 
   for(var key in obj) {

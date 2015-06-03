@@ -22,7 +22,7 @@ var hooks = function(assert) {
 
   ////////////////////////////////////////////////////////////
 
-  var decoratorA = objct.decorator(function(data, hello){
+  var decoratorA = objct.e.decorator(function(data, hello){
     data.bind("onChange.a", function(data){
       changeA.push(data);
     });
@@ -45,7 +45,7 @@ var hooks = function(assert) {
     return hello;
   });
 
-  var decoratorB = objct.decorator(function(data, hello){
+  var decoratorB = objct.e.decorator(function(data, hello){
     var construct=function(data){
       constructB.push(data);
     };
@@ -172,9 +172,9 @@ var calls = function(assert){
     return "decorateProperty2";
   }    
   
-  var newPropertyDecorator1 = objct.decorator(decorateProperty1);
-  var newPropertyDecorator2 = objct.decorator(decorateProperty2);
-  var newModuleDecorator = objct.decorator(decorateModule);
+  var newPropertyDecorator1 = objct.e.decorator(decorateProperty1);
+  var newPropertyDecorator2 = objct.e.decorator(decorateProperty2);
+  var newModuleDecorator = objct.e.decorator(decorateModule);
 
   var object = {
     prop1 : newPropertyDecorator1(args1, args2, args3),
@@ -228,17 +228,17 @@ var basic = function(assert){
     assert.strictEqual( param5 , undefined, "5th param in decorate is undefined");
   }
 
-  var newDecorator = objct.decorator(decorate);
+  var newDecorator = objct.e.decorator(decorate);
 
   var decorated = newDecorator(args1, args2, args3);
 
-  assert.strictEqual( typeof objct.decorator , "function", "objct.decorator is funciton");
-  assert.strictEqual( typeof newDecorator , "function", "newDecorator = objct.decorator() is function");
+  assert.strictEqual( typeof objct.e.decorator , "function", "objct.e.decorator is funciton");
+  assert.strictEqual( typeof newDecorator , "function", "newDecorator = objct.e.decorator() is function");
   assert.strictEqual( typeof decorated , "function", "decorated = newDecorator() is function");
   assert.strictEqual( decorated.hash , "jmuMMRs6AUUG293HXcs8Z0ofQlkG0hqiNAJlZq2hHYakBQmyfnRuCsh2yf+d7n", "decorated has .hash property");
 
   assert.throws( function(){
-    objct.decorator("string");
+    objct.e.decorator("string");
   }, /Unexpected 'string'/, "Threw: Unexpected Parameter -> needs function" );
 
 

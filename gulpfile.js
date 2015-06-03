@@ -11,10 +11,9 @@ var gulp = require("gulp"),
 
 ///////////////////////////////////////////////////////////////////////////////
 
-gulp.task('copyE', copyE);
-gulp.task('scripts', ["copyE"], scripts);
+gulp.task('scripts', scripts);
 gulp.task('test', ["scripts"], test);
-gulp.task('watch', watch);
+gulp.task('watch', ["scripts"], watch);
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -28,42 +27,23 @@ function browserify(){
 
 ///////////////////////////////////////////////////////////////////////////////
 
-function copyE(){
-    // gulp.src('lib/objct.e.js')
-    //     .pipe(jshint())
-    //     .pipe(jshint.reporter('default'))
-    //     .pipe(uglify({
-    //         "preserveComments" : "some"
-    //     }))
-    //     .pipe(gulp.dest('e/'))
-    //     ;
-
-    gulp.src(['lib/e/**/*.js'])
-        .pipe(jshint())
-        .pipe(jshint.reporter('default'))
-        .pipe(gulp.dest('e'))
-        ;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
 function scripts() {
-    gulp.src('lib/objct.js')
-        .pipe(jshint())
-        .pipe(jshint.reporter('default'))
-        .pipe(uglify({
-            "preserveComments" : "some"
-        }))
-        .pipe(gulp.dest('dist/'));
-
-    gulp.src(['e/index.js'])
+    gulp.src('temp/objct.js')
         .pipe(jshint())
         .pipe(jshint.reporter('default'))
         .pipe(browserify())
         .pipe(uglify({
             "preserveComments" : "some"
         }))
-        .pipe(rename('objct.e.js'))
+        .pipe(gulp.dest('dist/'));
+
+    gulp.src(['temp/objct.e.js'])
+        .pipe(jshint())
+        .pipe(jshint.reporter('default'))
+        .pipe(browserify())
+        .pipe(uglify({
+            "preserveComments" : "some"
+        }))
         .pipe(gulp.dest('dist'))
         .pipe(notify({ message: 'Scripts task complete' }))
         ;
