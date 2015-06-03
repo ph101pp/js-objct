@@ -28,7 +28,7 @@ function browserify(){
 ///////////////////////////////////////////////////////////////////////////////
 
 function scripts() {
-    gulp.src('temp/objct.js')
+    gulp.src('build_helper/objct.js')
         .pipe(jshint())
         .pipe(jshint.reporter('default'))
         .pipe(browserify())
@@ -37,7 +37,7 @@ function scripts() {
         }))
         .pipe(gulp.dest('dist/'));
 
-    gulp.src(['temp/objct.e.js'])
+    gulp.src(['build_helper/objct.e.js'])
         .pipe(jshint())
         .pipe(jshint.reporter('default'))
         .pipe(browserify())
