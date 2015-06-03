@@ -8,6 +8,7 @@ A fast, modular oop-inheritance library for javascript. Minimal basics combined 
 - [objct](#objct)
   - [objct()](#objct--)
   - [objct.extend()](#objctextend--)
+  - [new](#new)
 - [objct.e](objct-e)
   - [objct.e()](#objct--)
   - [objct.e.extend()](#objctextend--)
@@ -29,8 +30,7 @@ A fast, modular oop-inheritance library for javascript. Minimal basics combined 
 
 
 ## About
-
-_Objct_ has originally been developed for visual programming in TreeJS where object oriented programming with independent instances of modules where essential. However the library has proven its worth multiple times in other projects since then.
+_Objct_ has originally been developed for visual programming in ThreeJS where independent instances of modules were essential. The task of creating, combining and instanciating modules/objects while preserving all necessary closures to keep them separate quickly became complex and tedious. I needed a solid and easy to use solution which was the birth of this library. Since then _Objct_ proven to be invaluable in multiple projects and was constantly improved which turned out to be very educational.
 
 
 ## Features
