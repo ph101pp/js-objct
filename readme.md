@@ -15,13 +15,12 @@ A fast, modular oop-inheritance library for javascript. Minimal basics combined 
   - [Decorators](#sdaf)
     - [Deep](#adsf)
     - [Modify](#adsf)
-    - [Create Custom Decorator](#sdfa)
+  - [Create Custom Decorators](#sdfa)
 - [API](#api)
   - objct()
   - objct.extend()
   - objct.isObjct()
   - objct.isArray()
-  - objct.decorator()
   - objct.e()
   - objct.e.extend()
   - objct.e.decorator()
@@ -30,7 +29,7 @@ A fast, modular oop-inheritance library for javascript. Minimal basics combined 
 
 
 ## About
-_Objct_ has originally been developed for visual programming in ThreeJS where independent instances of modules were essential. The task of creating, combining and instanciating modules/objects while preserving all necessary closures to keep them separate quickly became complex and tedious. I needed a solid and easy to use solution which was the birth of this library. Since then _Objct_ proven to be invaluable in multiple projects and was constantly improved which turned out to be very educational.
+_Objct_ has originally been developed for visual programming in ThreeJS where independent instances of modules were essential to keep my molecules from interfering with each other. The task of creating, combining and instanciating modules/objects while preserving all necessary closures to keep them separate quickly became complex and tedious. I needed a solid and easy to use solution which was the birth of this library. Since then _Objct_ has proven to be invaluable in multiple projects and has constantly been improved and reduced to the max with each new usecase.
 
 
 ## Features
@@ -38,13 +37,26 @@ _Objct_ has originally been developed for visual programming in ThreeJS where in
 * Light weight and fast.
 * No new syntax: Private, privileged and public method definitions work as usual.
 * "Multiple inheritance". Objects can be modular assembled for each object.
-* Closures are preserved for each instance.
 * Objcts can be extended and used with _Objct_.
+* Closures are preserved for each new instance.
 * Easily extendable with powerfull decorators.
 
 
 
-## Documentation
+## objct()
+
+`objct()` combines `functions`(A), `objects`(B) and `objcts`(C) into a new `objct`. 
+
+`objcts` are factories that - when called - create a new, independent instance of the combined modules by instanciating all passed in `functions` before combining them with the `objects`.
+
+__A) functions__
+
+__B) objects__
+
+__C) objcts__
+
+
+
 ### 1.	General	
 
 ### 2. Basic Modular Factories
