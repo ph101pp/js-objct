@@ -1,10 +1,8 @@
 var gulp = require("gulp"),
-    jshint = require('gulp-jshint'),
     uglify = require('gulp-uglify'),
-    notify = require('gulp-notify'),
-    rename = require('gulp-rename'),
-    _browserify  = require('browserify'),
-    transform    = require('vinyl-transform'),
+    browserify   = require('browserify'),
+    source       = require('vinyl-source-stream'),
+    buffer       = require('vinyl-buffer'),
     git = require('gulp-git'),
     qunit = require('gulp-qunit'),
     bump = require('gulp-bump');
@@ -18,35 +16,33 @@ gulp.task('watch', ["scripts"], watch);
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-function browserify(){
-  return transform(function(filename){
-    var b =  _browserify(filename);
-    return b.bundle();
-  });
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
 function scripts() {
-    gulp.src('temp/objct.js')
-        .pipe(jshint())
-        .pipe(jshint.reporter('default'))
-        .pipe(browserify())
-        .pipe(uglify({
-            "preserveComments" : "some"
-        }))
-        .pipe(gulp.dest('dist/'));
 
-    gulp.src(['temp/objct.e.js'])
-        .pipe(jshint())
-        .pipe(jshint.reporter('default'))
-        .pipe(browserify())
-        .pipe(uglify({
-            "preserveComments" : "some"
-        }))
-        .pipe(gulp.dest('dist'))
-        .pipe(notify({ message: 'Scripts task complete' }))
-        ;
+    browserify({
+        debug: false,
+        entries: ['./temp/objct.js']
+    })
+    .bundle()
+    .pipe(source('objct.js'))
+    .pipe(buffer())
+    .pipe(uglify({
+        "preserveComments" : "some"
+    }))
+    .pipe(gulp.dest('./dist/'))
+    ;    
+
+    browserify({
+        debug: false,
+        entries: ['./temp/objct.e.js']
+    })
+    .bundle()
+    .pipe(source('objct.e.js'))
+    .pipe(buffer())
+    .pipe(uglify({
+        "preserveComments" : "some"
+    }))
+    .pipe(gulp.dest('./dist/'))
+    ;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
