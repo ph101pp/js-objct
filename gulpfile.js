@@ -20,7 +20,7 @@ function scripts() {
 
     browserify({
         debug: false,
-        entries: ['./temp/objct.js']
+        entries: ['./build_helper/objct.js']
     })
     .bundle()
     .pipe(source('objct.js'))
@@ -33,7 +33,7 @@ function scripts() {
 
     browserify({
         debug: false,
-        entries: ['./temp/objct.e.js']
+        entries: ['./build_helper/objct.e.js']
     })
     .bundle()
     .pipe(source('objct.e.js'))
