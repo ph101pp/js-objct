@@ -48,8 +48,7 @@ It's speed is now comparable with other libraries' `extend` or `assign` methods 
 
 `objct()` combines _modules_ into a new `objct`. 
 
-_Modules_ can be `functions`, `objects` or `objcts`.
-
+_Modules_ can be `functions`, `objects` or `objcts`.<br>
 `objcts` are modular factories. When called they create a new, independent instance of the combined modules.
 
 On instanciation all _modules_ passed to `objct()` are combined in the same sequence they were added to `objct()`.<br>
@@ -196,7 +195,7 @@ Using the `new` operator to call `objct()` skips the factory and directly return
 `objct.e()` works exactly the same as `objct()` does. With the only difference, that `objct.e()` looks for _decorators_. This comes with a certain loss of performance so `objct.e()` should only be used when using decorators.
 
 ### Decorators
-__Decorators can only be used when using `objct.e()`. `objct()` will not execute them properly but handle them as normal `functions`.__
+__Decorators can only be used with `objct.e()`. `objct()` will not ignore them / but handle them as normal `functions`.__
 
 
 #### Module Decorators
@@ -228,4 +227,3 @@ __Decorators can only be used when using `objct.e()`. `objct()` will not execute
 ### objct.e.deep
 
 ### objct.e.modify
-
