@@ -1,5 +1,5 @@
 # Objct
-A fast, modular oop-inheritance library for javascript. Minimal basics combined with powerfull decorators. 
+A fast, modular oop-inheritance library for javascript. Minimal basics combined with powerful decorators. 
 
 [![npm version](https://badge.fury.io/js/objct.svg)](http://badge.fury.io/js/objct)
 
