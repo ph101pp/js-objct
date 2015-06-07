@@ -1,8 +1,8 @@
 {
   "name": "objct",
-  "version": "0.0.2",
+  "version": "2.0.2",
   "author": "Philipp Adrian <hello@philippadrian.com>",
-  "description": "A fast modular oop-inheritance library that supports closures and abstract methods. Works nicely with browserify, CommonJS or just vanilla JavaScript.",
+  "description": "A fast, modular oop-inheritance library for javascript. Minimal basics combined with powerful decorators. ",
   "main": "lib/objct.js",
   "repository": {
     "type": "git",
