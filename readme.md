@@ -45,15 +45,19 @@ It's speed is now comparable with other libraries' `extend` or `assign` methods 
 
 ## objct()
 
-`objct()` combines `functions`, `objects` and `objcts` into a new `objct`. 
+`objct()` combines _modules_ into a new `objct`. 
+
+_Modules_ can be `functions`, `objects` or `objcts`.
 
 `objcts` are modular factories. When called they create a new, independent instance of the combined modules.
 
-On instanciation all `objects` passed to `objct()` are combined in the same sequence they were added to `objct()`. __`functions` passed to `objct()` are instanciated with `new` to create their private closure and the resulting object is then added to the instance.__
+On instanciation all _modules_ passed to `objct()` are combined in the same sequence they were added to `objct()`.<br>
+`objects` are merged shallowly into the new instance while __`functions` are instanciated with `new` to create their private closure – the resulting object is then also merged into the instance.__
 
 ```javascript
-////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 // Modules
+
 var a = {
 	a : "A",					
 	getValue:function(){ return this.a }
@@ -69,7 +73,7 @@ var c = function (){
 	this.getValue = function(){ return c } // privileged method
 }
 
-////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 // Factories
 
 var factoryABC = objct(a,b,c);
@@ -79,8 +83,9 @@ var factoryAB = objct(a,b);
 
 var factoryABc = objct(factoryAB, c); // same as factoryABC
 
-////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 // Basic inheritance
+
 var instanceABC = factoryABC(); // 
 
 instanceABC.a === "A";
@@ -88,7 +93,7 @@ instanceABC.b === "B";
 instanceABC.c === undefined;
 instanceABC.getC() === "C"; // privileged method has access to c
 
-////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 // Existing properties are overwritten by later added modules 
 
 var instanceABC = factoryABC()
@@ -97,7 +102,7 @@ var instanceCBA = factoryCBA();
 instanceABC.getValue() === "C";
 instanceCBA.getValue() === "A";
 
-////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 // Instances are separate
 
 var instance1 = factoryABC()
@@ -112,95 +117,71 @@ instance2.a === "X";
 
 [JS Fiddle](https://jsfiddle.net/7hfxwt2L/)
 
+### factory ( parameters, ... );
 
+A factory takes an arbitrary amount of parameters when called. These parameters are passes to all functions when instanciating them.
 
-
-### 1.	General	
-
-### 2. Basic Modular Factories
-Base objects for the following examples:
 
 ```javascript
-var a = {
-	a : "A",					
-	getA : function(){ return this.a },
-	getValue:function(){ return this.a }
+//////////////////////////////////////////////////////////////////////////////
+// Modules
+
+var a = function (prefix){	
+	this.a = prefix+"A";
+}
+var b = function (prefix){	
+	this.b = prefix+"B";
+}
+var c = function (prefix, suffix){	
+	this.c = prefix+"C"+suffix;
 }
 
 //////////////////////////////////////////////////////////////////////////////
 
-var b =  function(){};
-b.prototype.b = "B";
-b.prototype.getB = function(){ return this.b }
-b.prototype.getValue = function(){ return this.b }
+var factory = objct(a,b,c);
+
+var instance = factory("x-", "-y");
+
+instance.a === "x-A";
+instance.b === "x-B";
+instance.c === "x-C-y";
+
+```
+[JS Fiddle](https://jsfiddle.net/q7u53yyu/)
+
+### Static properties
+
+Static properties of functions passed to `objct()` are preserved accessible on the factory object. The same overwrite rules apply.
+
+```javascript
+//////////////////////////////////////////////////////////////////////////////
+// Modules
+
+var a = function(){};
+a.static = "A";
+a.A = function(){
+	return "A";
+};
+
+var b = function(){};
+b.static = "B";
+b.B = function(){
+	return "B";
+};
 
 //////////////////////////////////////////////////////////////////////////////
 
-var c = function (){	
-	var c = "C";	// private property
-	this.getC = function(){	return c }	
-	this.getValue = function(){ return c }
-}
-```
-#### Create Factories
-Create modular factories from objects or functions.
-Object literals are handled like the prototype of functions resulting in public properties.
-Closures are preserved. Privileged methods keep their privileges.
-Factory objects can also be used with the objectfactory.
+var factoryAB = objct(a, b);
+var factoryBA = objct(b, a);
 
-``` javascript
-var factoryAB = objectfactory(a, b);
-var factoryABC = objectfactory(factoryAB, c);	// same as objectfactory(a, b, c);
+factoryAB.A() === "A";
+factoryAB.B() === "B";
 
-var instanceABC = factoryABC();
-
-instanceABC.getA()			// -> "A"
-instanceABC.getB()			// -> "B"
-instanceABC.getC()			// -> "C" /Privileges to access private property preserved.
-
-instanceABC.a 				// -> "A"
-instanceABC.b 				// -> "B"
-instanceABC.c 				// -> Undefined 
-
-//////////////////////////////////////////////////////////////////////////////
-var instanceABC2 = factoryABC();
-
-instanceABC2.a 				// -> "A"
-instanceABC2.a = "Z"
-
-instanceABC2.a 				// -> "Z"
-instanceABC.a 				// -> "A" / Instances are not references but separate entities
-```
-#### Overwriting Properties
-Properties of later added objects override already existing properties.
-Public properties can override privileged ones and vice versa.
-
-``` javascript
-var factoryAB = objectfactory(a, b);
-var factoryBA = objectfactory(b, a);
-
-var instanceAB = factoryAB();
-var instanceBA = factoryBA();
-
-instanceAB.getValue()		// -> "B"
-instanceBA.getValue()		// -> "A"
-
-```
-#### "Static Properties"
-Properties of the function object (not the prototype) are preserved as well and are accessible on the factory object.
-The same overwrite rules apply.
-
-``` javascript
-var factoryAB = objectfactory(a, b);
-var factoryBC = objectfactory(b, c);
-var factoryCB = objectfactory(c, b);
-
-factoryAB.static()			// -> "B"
-factoryBC.static()			// -> "C"
-factoryCB.static()			// -> "B"
+factoryAB.static === "B";
+factoryBA.static === "A";
 
 var instanceAB = factoryAB();
 
-instanceAB.static()			// -> Error: Undefined
+instanceAB.static === undefined;
 ```
-
+[JS Fiddle](https://jsfiddle.net/91skkmd7/1/)
