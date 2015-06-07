@@ -34,7 +34,7 @@ _Objct_ has originally been developed for visual programming in ThreeJS where in
 It's speed is now comparable with other libraries' `extend` or `assign` methods see:<br>
 [jsPref - objct()](https://jsperf.com/objct)<br>
 [jsPref - objct.extend()](https://jsperf.com/objct-extend).<br>
-Thats nice, however _Objct_ has been built for a different use case and can do much more:
+Thats nice, however _Objct_ has been built for a different use case and can do more than just combine objects:
 
 ## Features
 
