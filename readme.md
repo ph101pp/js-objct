@@ -45,15 +45,73 @@ It's speed is now comparable with other libraries' `extend` or `assign` methods 
 
 ## objct()
 
-`objct()` combines `functions`(A), `objects`(B) and `objcts`(C) into a new `objct`. 
+`objct()` combines `functions`, `objects` and `objcts` into a new `objct`. 
 
-`objcts` are factories that - when called - create a new, independent instance of the combined modules by instanciating all passed in `functions` before combining them with the `objects`.
+`objcts` are modular factories. When called they create a new, independent instance of the combined modules.
 
-__A) functions__
+On instanciation all `objects` passed to `objct()` are combined in the same sequence they were added to `objct()`. __`functions` passed to `objct()` are instanciated with `new` to create their private closure and the resulting object is then added to the instance.__
 
-__B) objects__
+```javascript
+////////////////////////////////////////////////////////////////////////
+// Modules
+var a = {
+	a : "A",					
+	getValue:function(){ return this.a }
+}
 
-__C) objcts__
+var b =  function(){};
+b.prototype.b = "B";
+b.prototype.getValue = function(){ return this.b }
+
+var c = function (){	
+	var c = "C"; // private property
+	this.getC = function(){	return c } // privileged method
+	this.getValue = function(){ return c } // privileged method
+}
+
+////////////////////////////////////////////////////////////////////////
+// Factories
+
+var factoryABC = objct(a,b,c);
+var factoryCBA = objct(c,b,a);
+
+var factoryAB = objct(a,b);
+
+var factoryABc = objct(factoryAB, c); // same as factoryABC
+
+////////////////////////////////////////////////////////////////////////
+// Basic inheritance
+var instanceABC = factoryABC(); // 
+
+instanceABC.a === "A";
+instanceABC.b === "B";
+instanceABC.c === undefined;
+instanceABC.getC() === "C"; // privileged method has access to c
+
+////////////////////////////////////////////////////////////////////////
+// Existing properties are overwritten by later added modules 
+
+var instanceABC = factoryABC()
+var instanceCBA = factoryCBA();
+
+instanceABC.getValue() === "C";
+instanceCBA.getValue() === "A";
+
+////////////////////////////////////////////////////////////////////////
+// Instances are separate
+
+var instance1 = factoryABC()
+var instance2 = factoryABC()
+
+instance2.a = "X"; // redefine a in instance2
+
+instance1.a === "A"  // instance 1 is not affected
+instance2.a === "X";
+
+```
+
+[JS Fiddle](https://jsfiddle.net/7hfxwt2L/)
+
 
 
 
@@ -62,7 +120,7 @@ __C) objcts__
 ### 2. Basic Modular Factories
 Base objects for the following examples:
 
-``` javascript
+```javascript
 var a = {
 	a : "A",					
 	getA : function(){ return this.a },
@@ -75,7 +133,6 @@ var b =  function(){};
 b.prototype.b = "B";
 b.prototype.getB = function(){ return this.b }
 b.prototype.getValue = function(){ return this.b }
-b.static = function(){ return "B" }
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -84,7 +141,6 @@ var c = function (){
 	this.getC = function(){	return c }	
 	this.getValue = function(){ return c }
 }
-c.static = function(){ return "C" }
 ```
 #### Create Factories
 Create modular factories from objects or functions.
