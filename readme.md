@@ -195,7 +195,7 @@ Using the `new` operator to call `objct()` skips the factory and directly return
 `objct.e()` works exactly the same as `objct()` does. With the only difference, that `objct.e()` looks for _decorators_. This comes with a certain loss of performance so `objct.e()` should only be used when using decorators.
 
 ### Decorators
-__Decorators can only be used with `objct.e()`. `objct()` will not ignore them / but handle them as normal `functions`.__
+__Decorators can only be used with `objct.e()`. `objct()` will not ignore / handle them as normal `functions`.__
 
 
 #### Module Decorators
