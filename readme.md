@@ -37,7 +37,7 @@ It's speed is now comparable with other libraries' `extend` or `assign` methods 
 ## Features
 
 * __Light weight and fast.__
-* __No new syntax__ Private, privileged and public method definitions work as usual.
+* __No special syntax__ Private, privileged and public method definitions work as usual.
 * __Multiple inheritance__ `objects`, `functions` and `objcts` can be modular assembled for each _Objct_.
 * __Closures are preserved__ for each new instance.
 * __Easily extendable__ with powerfull decorators.
@@ -194,8 +194,11 @@ Using the `new` operator to call `objct()` skips the factory and directly return
 `new objct(..)` is a nicer/ more readable way to write `objct(...)()`.
 
 ## objct.e()
+`objct.e()` works exactly the same as `objct()` does. The only difference is, that with `objct.e()` _decorators_ can be used.
 
 ### Decorators
+__Decorators can only be used when using `objct.e()`. `objct()` will handle them as normal `functions`.__
+
 
 #### Module Decorators
 
