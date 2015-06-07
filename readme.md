@@ -194,10 +194,10 @@ Using the `new` operator to call `objct()` skips the factory and directly return
 `new objct(..)` is a nicer/ more readable way to write `objct(...)()`.
 
 ## objct.e()
-`objct.e()` works exactly the same as `objct()` does. The only difference is, that with `objct.e()` _decorators_ can be used.
+`objct.e()` works exactly the same as `objct()` does. With the only difference, that `objct.e()` looks for _decorators_. This comes with a certain loss of performance so `objct.e()` should only be used when using decorators.
 
 ### Decorators
-__Decorators can only be used when using `objct.e()`. `objct()` will handle them as normal `functions`.__
+__Decorators can only be used when using `objct.e()`. `objct()` will not execute them properly but handle them as normal `functions`.__
 
 
 #### Module Decorators
@@ -211,7 +211,7 @@ __Decorators can only be used when using `objct.e()`. `objct()` will handle them
 ### objct()
 
 ### objct.extend()
-`objct.extend()` works exactly the same way as `objct()` does - with the only exception that instead of creating a new instance, the first module is extendend and __changed__. Therefore the results of `objct.extend()` and `objct()` are only different if the first module is an `object`, if the first module is a `function` or an `objct`, there is no differnce in the result.
+`objct.extend()` works `objct()` does - with the difference that instead of creating a new instance, the first module is extendend and __changed__. (The results of `objct.extend()` and `objct()` are only different if the first module is an `object`, if the first module is a `function` or an `objct` there is no differnce in the result.)
 
 ### objct.isObjct()
 
@@ -220,6 +220,7 @@ __Decorators can only be used when using `objct.e()`. `objct()` will handle them
 ### objct.e()
 
 ### objct.e.extend()
+`objct.e.extend()` works exactly the same as `objct.extend()` does, but also looks for decorators.
 
 ### objct.e.decorator()
 
