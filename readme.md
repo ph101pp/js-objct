@@ -5,11 +5,11 @@ A fast, modular oop-inheritance library for javascript. Minimal basics combined 
 
 - [About](#about)
 - [Features](#features)
-- [objct](#objct)
-  - [objct()](#objct--)
-  - [objct.extend()](#objctextend--)
-  - [new](#new)
-- [objct.e](objct-e)
+- [objct()](#objct-1)
+  - [factory( parameters, ... )](#factory-parameters--)
+  - [Static Properties](#static-properties)
+  - [new objct()](#new-objct)
+- [objct.e()](objct-e)
   - [objct.e()](#objct--)
   - [objct.e.extend()](#objctextend--)
   - [Decorators](#sdaf)
@@ -117,7 +117,7 @@ instance2.a === "X";
 
 [JS Fiddle](https://jsfiddle.net/7hfxwt2L/)
 
-### factory ( parameters, ... );
+### factory( parameters, ... );
 
 A factory takes an arbitrary amount of parameters when called. These parameters are passes to all functions when instanciating them.
 
