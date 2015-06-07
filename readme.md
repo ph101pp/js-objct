@@ -10,20 +10,21 @@ A fast, modular oop-inheritance library for javascript. Minimal basics combined 
   - [Static Properties](#static-properties)
   - [new objct()](#new-objct)
 - [objct.e()](objct-e)
-  - [objct.e()](#objct--)
-  - [objct.e.extend()](#objctextend--)
   - [Decorators](#sdaf)
-    - [Deep](#adsf)
-    - [Modify](#adsf)
-  - [Create Custom Decorators](#sdfa)
+    - [Module Decorators](#sdfa)
+    - [Property Decorators](#sdfa)
+    - [Create Custom Decorators](#sdfa)
 - [API](#api)
-  - objct()
-  - objct.extend()
-  - objct.isObjct()
-  - objct.isArray()
-  - objct.e()
-  - objct.e.extend()
-  - objct.e.decorator()
+  - [objct()](#adsf)
+  - [objct.extend()](#adsf)
+  - [objct.isObjct()](#adsf)
+  - [objct.isArray()](#adsf)
+  - [objct.e()](#adsf)
+  - [objct.e.extend()](#adsf)
+  - [objct.e.decorator()](#adsf)
+- [Decorators](#sdaf)
+  - [objct.e.deep](#adsf)
+  - [objct.e.modify](#adsf)
 - [License](#license)
 
 
@@ -192,9 +193,36 @@ Using the `new` operator to call `objct()` skips the factory and directly return
 
 `new objct(..)` is a nicer/ more readable way to write `objct(...)()`.
 
+## objct.e()
 
-## objct.extend()
+### Decorators
+
+#### Module Decorators
+
+#### Property Decorators
+
+#### Create Custom Decorators
+
+## API
+
+### objct()
+
+### objct.extend()
 `objct.extend()` works exactly the same way as `objct()` does - with the only exception that instead of creating a new instance, the first module is extendend and __changed__. Therefore the results of `objct.extend()` and `objct()` are only different if the first module is an `object`, if the first module is a `function` or an `objct`, there is no differnce in the result.
 
+### objct.isObjct()
 
+### objct.isArray()
+
+### objct.e()
+
+### objct.e.extend()
+
+### objct.e.decorator()
+
+## Decorators
+
+### objct.e.deep
+
+### objct.e.modify
 
