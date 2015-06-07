@@ -31,9 +31,7 @@ A fast, modular oop-inheritance library for javascript. Minimal basics combined 
 ## About
 _Objct_ has originally been developed for visual programming in ThreeJS where independent instances of modules were essential to keep my molecules from interfering with each other. The task of creating, combining and instanciating modules/objects while preserving all necessary closures to keep them separate quickly became complex and tedious. I needed a solid and easy to use solution which was the birth of this library. Since then _Objct_ has proven to be invaluable in multiple projects and has constantly been improved and reduced to the max with each new usecase.
 
-It's speed is now comparable with other libraries' `extend` or `assign` methods see:<br>
-[jsPref - objct()](https://jsperf.com/objct) and [jsPref - objct.extend()](https://jsperf.com/objct-extend).<br>
-Thats nice, however _Objct_ has been built for a different use case and can do more than just combine objects:
+It's speed is now comparable with other libraries' `extend` or `assign` methods ( see [jsPref - objct()](https://jsperf.com/objct) and [jsPref - objct.extend()](https://jsperf.com/objct-extend). Thats nice, however _Objct_ has been built for a different use case and can do more than just combine objects:
 
 ## Features
 
