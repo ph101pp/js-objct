@@ -52,7 +52,7 @@ _Modules_ can be `functions`, `objects` or `objcts`.
 `objcts` are modular factories. When called they create a new, independent instance of the combined modules.
 
 On instanciation all _modules_ passed to `objct()` are combined in the same sequence they were added to `objct()`.<br>
-`objects` are merged shallowly into the new instance while __`functions` are instanciated with `new` to create their private closure – the resulting object is then also merged into the instance.__
+`objects` are merged shallowly into the new instance while __`functions` are instanciated with `new` to create their private closure__ – the resulting object is then also merged into the instance.
 
 ```javascript
 //////////////////////////////////////////////////////////////////////////////
@@ -185,3 +185,16 @@ var instanceAB = factoryAB();
 instanceAB.static === undefined;
 ```
 [JS Fiddle](https://jsfiddle.net/91skkmd7/1/)
+
+### new objct()
+
+Using the `new` operator to call `objct()` skips the factory and directly returns a new instance of the passed _modules_.
+
+`new objct(..)` is a nicer/ more readable way to write `objct(...)()`.
+
+
+## objct.extend()
+`objct.extend()` works exactly the same way as `objct()` does - with the only exception that instead of creating a new instance, the first module is extendend and __changed__. Therefore the results of `objct.extend()` and `objct()` are only different if the first module is an `object`, if the first module is a `function` or an `objct`, there is no differnce in the result.
+
+
+
