@@ -218,7 +218,7 @@ __Decorators can only be used with `objct.e()`. `objct()` will not ignore / hand
 ### objct.e()
 
 ### objct.e.extend()
-`objct.e.extend()` works exactly the same as [`objct.extend()`](#objct-extend) does, but also looks for decorators like [`objct.e()`](#objct-e-2) does.
+`objct.e.extend()` works exactly the same as [`objct.extend()`](#objctextend) does, but also looks for decorators like [`objct.e()`](#objcte) does.
 
 ### objct.e.decorator()
 
