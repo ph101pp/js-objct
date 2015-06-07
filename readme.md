@@ -118,7 +118,7 @@ instance2.a === "X";
 
 [JS Fiddle](https://jsfiddle.net/7hfxwt2L/)
 
-#### factory( parameters, ... );
+### factory( parameters, ... );
 
 A factory takes an arbitrary amount of parameters when called. These parameters are passes to all functions when instanciating them.
 
@@ -150,7 +150,7 @@ instance.c === "x-C-y";
 ```
 [JS Fiddle](https://jsfiddle.net/q7u53yyu/)
 
-#### Static properties
+### Static properties
 
 Static properties of functions passed to `objct()` are preserved accessible on the factory object. The same overwrite rules apply.
 
@@ -187,46 +187,45 @@ instanceAB.static === undefined;
 ```
 [JS Fiddle](https://jsfiddle.net/91skkmd7/1/)
 
-#### new objct()
+### new objct()
 
 Using the `new` operator to call `objct()` skips the factory and directly returns a new instance of the passed _modules_.
-
 `new objct(..)` is a nicer/ more readable way to write `objct(...)()`.
 
 ## objct.e()
 `objct.e()` works exactly the same as `objct()` does. With the only difference, that `objct.e()` looks for _decorators_. This comes with a certain loss of performance so `objct.e()` should only be used when using decorators.
 
-#### Decorators
+### Decorators
 __Decorators can only be used when using `objct.e()`. `objct()` will not execute them properly but handle them as normal `functions`.__
 
 
-##### Module Decorators
+#### Module Decorators
 
-##### Property Decorators
+#### Property Decorators
 
-##### Create Custom Decorators
+#### Create Custom Decorators
 
 ## API
 
-#### objct()
+### objct()
 
-#### objct.extend()
+### objct.extend()
 `objct.extend()` works `objct()` does - with the difference that instead of creating a new instance, the first module is extendend and __changed__. (The results of `objct.extend()` and `objct()` are only different if the first module is an `object`, if the first module is a `function` or an `objct` there is no differnce in the result.)
 
-#### objct.isObjct()
+### objct.isObjct()
 
-#### objct.isArray()
+### objct.isArray()
 
-#### objct.e()
+### objct.e()
 
-#### objct.e.extend()
+### objct.e.extend()
 `objct.e.extend()` works exactly the same as `objct.extend()` does, but also looks for decorators.
 
-#### objct.e.decorator()
+### objct.e.decorator()
 
 ## Decorators
 
-#### objct.e.deep
+### objct.e.deep
 
-#### objct.e.modify
+### objct.e.modify
 
