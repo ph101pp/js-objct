@@ -2,6 +2,7 @@
 A fast, modular oop-inheritance library for javascript. Minimal basics combined with powerful decorators. 
 
 [![npm version](https://badge.fury.io/js/objct.svg)](http://badge.fury.io/js/objct)
+[![Bower version](https://badge.fury.io/bo/objct.svg)](http://badge.fury.io/bo/objct)
 
 - [About](#about)
 - [Features](#features)
