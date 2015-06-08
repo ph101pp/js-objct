@@ -1,8 +1,8 @@
 {
   "name": "objct",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "author": "Philipp Adrian <hello@philippadrian.com>",
-  "description": "A fast, modular oop-inheritance library for javascript. Minimal basics combined with powerful decorators. ",
+  "description": "A fast, modular oop-inheritance library for javascript. Minimal basics combined with powerful decorators.",
   "main": "lib/objct.js",
   "repository": {
     "type": "git",
