@@ -98,47 +98,41 @@ var mixinFunction = function(target, fn, data){
 };
 ////////////////////////////////////////////////////////////////////////////////
 var build = function(modules, data){
-	var isFunction, i=0;
-	var instance;
+	var isFunction, i=-1;
+	var instance, obj, length = modules.length;
 
-	//FIRST MODULE
-	// decorated?
-	var obj = data.d ?
-		decoratedModule(modules[0].obj, data, instance):
-		modules[0].obj;
-
-	//function or NewObj?
-	var instance = obj === NewObj ? 
-		NewObj():
-		typeof obj === strFunction ?
-			instantiate(obj, data.a):
-			obj;
-
-	data.i = data.i || instance;
-	// call first modules decorators
-	data.d && mixinObject(instance, instance, data);
-
-	//OTHER MODULES
-	var length = modules.length;
-
-
-		//module decorated?
 	while(++i<length) {
 		obj = data.d ?
-			decoratedModule(modules[i].obj, data, instance):
+			decoratedModule(modules[i].obj, data, data.i):
 			modules[i].obj;
 
-		//module is factory? -> call it
-		obj = modules[i].isFactory ?
-			obj.call({hash:hash}, modules[i], data):
-			obj;
+		// first Module
+		if(i === 0) {
+			// very first module
+			if(data.i === null) {
+				data.i = obj === NewObj ? 
+					NewObj():
+					typeof obj === strFunction ?
+						instantiateFunction(obj, data.a):
+						obj;
+				// call first modules decorators
+				data.d && mixinObject(data.i, data.i, data);
+				continue;
+			}
+			else if(obj === NewObj) continue;
+		} 
 
-		// mixin function or object.
-		typeof obj === strFunction ?
-			mixinFunction(instance, obj, data):
-			mixinObject(instance, obj, data);
+		//module is factory? -> call it
+		modules[i].isFactory ?
+			obj.call({hash:hash}, modules[i], data):
+			// module is function?
+			typeof obj === strFunction ?
+				mixinFunction(data.i, obj, data):
+				// module is object
+				mixinObject(data.i, obj, data);
 	}
-	return instance;
+
+	return data.i;
 };
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
