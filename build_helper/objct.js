@@ -1,4 +1,4 @@
-var objct = require("../lib/objct");
+var objct = require("../objct");
 
 if(typeof define === "function" && define.amd) 
   define(function(){return objct;});
