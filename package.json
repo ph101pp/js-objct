@@ -7,7 +7,7 @@
     "website" : "http://www.philippadrian.com"
   },
   "description": "A fast, modular oop-inheritance library for javascript. Minimal basics combined with powerful decorators.",
-  "main": "lib/objct.js",
+  "main": "./objct.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/greenish/js-objct.git"
