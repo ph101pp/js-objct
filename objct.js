@@ -12,9 +12,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 var Objct = function(){};
 var NewObj = function(){return {};};
-var objctHash = "jmuMMRs6AUUG29";
-var hash = objctHash+"3HXcs8Z0ofQlkG0hqiNAJlZq2hHYakBQmyfnRuCsh2yf+d7n";
-var testExecutable = new RegExp("\\b"+objctHash+"\\b");
+var hash = "jmuMMRs6AUUG293HXcs8Z0ofQlkG0hqiNAJlZq2hHYakBQmyfnRuCsh2yf-d7n";
+var testExecutable = new RegExp("\\b"+hash+"\\b");
 var strFunction = "function";
 var strObject = "object";
 var strArray = Array.toString();
@@ -25,7 +24,7 @@ var checkType = function(value){
 	return type === strFunction || (type === strObject && !factory.isArray(value));
 };
 ////////////////////////////////////////////////////////////////////////////////
-var instantiate = function(fn, args){
+var instantiateFunction = function(fn, args){
 	Objct.prototype = fn.prototype;
 	var f = new Objct();
 	Objct.prototype = null;
@@ -58,19 +57,21 @@ var mixinObject = function(target, source, data, keys) {
 	var k = -1, length;
 	keys = keys || objectKeys(source);
 	if(typeof keys === strObject) {
-		length = keys.length;
-		while(++k < length) {
-			data.d ?
-				decoratedProperty(target, source, keys[k], data):
+		length = keys.length;	
+		if(data.d) 
+			while(++k < length) 
+				decoratedProperty(target, source, keys[k], data);
+		else 
+			while(++k < length) 
 				target[keys[k]]=source[keys[k]];
-		}
 	}
 	else {
-		for(k in source) {
-			data.d ?
-				decoratedProperty(target, source, k, data):
+		if(data.d) 
+			for(k in source) 
+				decoratedProperty(target, source, k, data);
+		else 
+			for(k in source) 
 				target[k]=source[k];
-		}
 	}
 };
 ////////////////////////////////////////////////////////////////////////////////
@@ -82,11 +83,11 @@ var mixinFunction = function(target, fn, data){
 
 	if(!data.d) {
 		fn.apply(target, data.a);
-		return target;
+		return;
 	}
 
 	fn.prototype = target;
-	instance = instantiate(fn, data.a);
+	instance = instantiateFunction(fn, data.a);
 	fn.prototype = proto;
 
 	keys = typeof Object.getOwnPropertyNames === strFunction ?
@@ -114,15 +115,15 @@ var build = function(modules, data){
 			obj;
 
 	data.i = data.i || instance;
-
 	// call first modules decorators
 	data.d && mixinObject(instance, instance, data);
 
 	//OTHER MODULES
 	var length = modules.length;
-	while(++i<length) {
+
 
 		//module decorated?
+	while(++i<length) {
 		obj = data.d ?
 			decoratedModule(modules[i].obj, data, instance):
 			modules[i].obj;
@@ -173,39 +174,30 @@ factory.e.extend = function(){
 factory.extend = function(){
 	////////////////////////////////////////////////////////////////////////
 	var Executable = function Executable(module, data){
-		"jmuMMRs6AUUG29";
+		"jmuMMRs6AUUG293HXcs8Z0ofQlkG0hqiNAJlZq2hHYakBQmyfnRuCsh2yf-d7n";
 		var that = this || {};
 
 		//////////////////////////
 		// Continue building process
 		//////////////////////////
-		if(that && typeof that.hash === "string" && that.hash.search(objctHash) >= 0) {
+		if(that && typeof that.hash === "string" && that.hash === hash) {
 			// pass up modules
 			module.m = thisData.m;
-			if(that.hash === hash) {
-				return build(thisData.m, data);
-			}
-			else {
-				thisData.a = data.a;
-			}
+			return build(thisData.m, data);
 		}
 		//////////////////////////
 		// Start building process
 		//////////////////////////
-		else {
-			thisData.a = arguments;
-		}
 		
-		var instance = build(thisData.m, thisData);
-
-		return instance;
+		thisData.a = arguments;
+		return build(thisData.m, thisData);
 	};
 	////////////////////////////////////////////////////////////////////////
 	var that = this || {};
 	var thisData = {
 		a : [], // args
 		m : [], // modules
-		i : false, // instance
+		i : null, // instance
 		d : that.hash === hash ? that.d : false, // decorated
 	};
 	var type;

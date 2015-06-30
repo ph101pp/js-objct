@@ -403,7 +403,7 @@ function basic(assert){
   assert.strictEqual( typeof objct.e.decorator , "function", "objct.e.decorator is funciton");
   assert.strictEqual( typeof newDecorator , "function", "newDecorator = objct.e.decorator() is function");
   assert.strictEqual( typeof decorated , "function", "decorated = newDecorator() is function");
-  assert.strictEqual( decorated.hash , "jmuMMRs6AUUG293HXcs8Z0ofQlkG0hqiNAJlZq2hHYakBQmyfnRuCsh2yf+d7n", "decorated has .hash property");
+  assert.strictEqual( decorated.hash , "jmuMMRs6AUUG293HXcs8Z0ofQlkG0hqiNAJlZq2hHYakBQmyfnRuCsh2yf-d7n", "decorated has .hash property");
 
   assert.throws( function(){
     objct.e.decorator("string");
