@@ -1,108 +1,12 @@
-var hooks = function(assert) {
-  var a = {
-    a : "A1",
-    b : "B1"                
-  }
-
-  ////////////////////////////////////////////////////////////
-
-  var b =  function(){};
-  b.prototype.b = "B2";
-  b.prototype.a = "A2";
-
-  ////////////////////////////////////////////////////////////
-
-  var changeA = [];
-  var changeAll = [];
-  var changeB = [];
-  var constructA = [];
-  var constructB = [];
-  var constructC = [];
-  var types = [];
-
-  ////////////////////////////////////////////////////////////
-
-  var decoratorA = objct.e.decorator(function(data, hello){
-    data.bind("onChange.a", function(data){
-      changeA.push(data);
-    });
-    data.bind("onConstruct", function(data){
-      types.push("onConstructA");
-      constructA.push(data);
-    });
-
-    data.bind("onChange", function(data){
-      types.push("onChange70");
-    },70);
-    data.bind("onChange", function(data){
-      changeAll.push(data);
-      types.push("onChange50");
-    });
-    data.bind("onChange", function(data){
-      types.push("onChange20");
-    },20);
-
-    return hello;
-  });
-
-  var decoratorB = objct.e.decorator(function(data, hello){
-    var construct=function(data){
-      constructB.push(data);
-    };
-    var change = function(that){
-      changeB.push(that);
-      data.unbind("onChange.b", change);      
-      data.unbind("onConstruct", construct);
-    };
-
-    data.bind("onChange.b", change);
-    data.bind("onConstruct", construct);
-    data.bind("onConstruct", function(){
-      types.push("onConstructC");
-      constructC.push(data);
-    }, 10);
-    return hello;
-  });
-
-  var f  = objct.e({
-    a:decoratorA("A0"), 
-    b:decoratorB("B0")
-  }, a,b);
-
-  var args = ["args"];
-  var i = f(args);
-
-  ////////////////////////////////////////////////////////////
-
-  // console.log(types,changeA, changeAll, changeB,constructA,constructB);
-
-  assert.ok(changeA.length === 3, "onChange.a executed for every change off a" );
-  assert.ok(changeAll.length === 6, "onChange.all executed for every change" );
-  assert.ok(changeB.length === 1, "onChange.b only executed once then unbound" );
-  assert.ok(constructA.length === 1, "construct A executed" );
-  assert.ok(constructB.length === 0, "construct b never executed because unbound" );
-
-  assert.ok(changeA[0].key === "a" && changeA[1].key === "a" && changeA[2].key === "a", "onChange.a: data.key === 'a'" );
-  assert.ok(changeA[0].old === undefined && changeA[0].value === "A0", "onChange.a - first call: data.old === undefined, data.value === 'A0'" );
-  assert.ok(changeA[1].old === "A0" && changeA[1].value === "A1", "onChange.a - second call: data.old === 'A0', data.value === 'A1'" );
-  assert.ok(changeA[2].old === "A1" && changeA[2].value === "A2", "onChange.a - third call: data.old === 'A1', data.value === 'A2'" );
-
-  assert.ok(changeA[0].target === i, "onChange: data.target === instance");
-  assert.ok(changeA[0].args[0] === args, "onChange: data.args are passed to event");
-  assert.ok(changeA[0].modules[2].obj === a && changeA[0].modules[3].obj === b, "onChange: data.modules are passed to event");
-
-  assert.ok(constructA[0].args[0] === args, "onConstruct: data.args are passed to event");
-  assert.ok(constructA[0].modules[2].obj === a && constructA[0].modules[3].obj === b, "onConstruct: data.modules are passed to event");
-
-  assert.ok(types[0] === "onChange20" && types[1] === "onChange50" && types[2] === "onChange70", "onChange events executed in zIndex order 20, 50, 70" );
-  assert.ok(types[types.length-2] === "onConstructC" && types[types.length-1] === "onConstructA", "onConstruct events executed in zIndex order 20, 50, 70" );
-
-
-}
 
 ////////////////////////////////////////////////////////////////
 
-var calls = function(assert){
+QUnit.test( "Decorator – Basic function behavior", basic);
+QUnit.test( "Decorator – Calls and Params from objct", calls);
+
+////////////////////////////////////////////////////////////////
+
+function calls(assert){
 // assert.strictEqual( typeof fABC , "function", prefix+"Factory f(a,b,c) is Function");
 // assert.ok( i1ABC.a === "X" && i2ABC.a === "X" && a.a === "X", prefix+"i(a,b,c).a === i2(a,b,c).a === a.a");
 // assert.propEqual(i1ciAB, i1cAB, prefix+"i(c, i(a,b)) === i(a,b,c)");
@@ -207,7 +111,7 @@ var calls = function(assert){
 
 ////////////////////////////////////////////////////////////////
 
-var basic = function(assert){
+function basic(assert){
 // assert.strictEqual( typeof fABC , "function", prefix+"Factory f(a,b,c) is Function");
 // assert.ok( i1ABC.a === "X" && i2ABC.a === "X" && a.a === "X", prefix+"i(a,b,c).a === i2(a,b,c).a === a.a");
 // assert.propEqual(i1ciAB, i1cAB, prefix+"i(c, i(a,b)) === i(a,b,c)");
@@ -246,8 +150,3 @@ var basic = function(assert){
 
 }
 
-////////////////////////////////////////////////////////////////
-
-QUnit.test( "Decorator – Basic function behavior", basic);
-QUnit.test( "Decorator – Calls and Params from objct", calls);
-QUnit.test( "Decorator – Hooks - Bind/Unbind", hooks);
