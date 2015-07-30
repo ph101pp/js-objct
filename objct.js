@@ -48,7 +48,7 @@ var decoratedModule = function(module, data, instance) {
 	return typeof module === strFunction && module.hash === hash ?
 		module.call(instance, {
 			args:data.a, 
-			modules:data.m, 
+			modules:data.m
 		}):
 		module;
 }
@@ -192,7 +192,7 @@ factory.extend = function(){
 		a : [], // args
 		m : [], // modules
 		i : null, // instance
-		d : that.hash === hash ? that.d : false, // decorated
+		d : that.hash === hash ? that.d : false // decorated
 	};
 	var type;
 	var args = arguments.length > 0 ? arguments : that.arguments;
